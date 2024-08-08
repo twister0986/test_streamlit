@@ -295,9 +295,9 @@ def uuspa_meta_api_link():
             view_ad_detile(date_filter[0], date_filter[1])
     
     #uuspa_meta_api_link函式主程式
-    my_app_id = '979970737212193' 
-    my_app_secret = '10d42ab770d274dea7b7e7d3924d416b' 
-    my_access_token = 'EAAN7RzeuiyEBOZCNhdkGhOk625oDA0Yat9NiwiISNRnLBFXPNItzchxREOBuGMpVBHssTGeSyFtdhgzlxAISPxRnoBRQdR2DYVvb3MAHl1rtWFFLUZCZAS2f0wL73qMZAaEJIhBlf9wxRMlLSKl9cQXtYoLZCWQNzw3HjCsEQ5BvlqSQyxS0MNnaTigsLKU1J7ZAmReYvZC' 
+    my_app_id = '1612145376022074' 
+    my_app_secret = '67c6c59518b46c5151e2279801c389fb' 
+    my_access_token = 'EAAW6PNh2zjoBOy2r4ok5k80yZBu0NW9xHGVYinb5ZBikdPZBmuk5P3BlCZCTMOQRq8ierEzU33ldYiquy9wx12Q69i7bFShbTlLvYZBpodaDfSiSV22s8w5tICJhEKsUGd9oqDAE5uThFIqlNXGniyhsuzxR38Iw0tSyLArZAH6b3RC3MCiq8OppKrGrYdzrqouEcznIz7' 
     # 初始化 Facebook 廣告 API 
     FacebookAdsApi.init(my_app_id, my_app_secret, my_access_token) 
     # 指定你的廣告帳戶 ID 
