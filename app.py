@@ -24,6 +24,8 @@ def uuspa_meta_api_link():
         #細節存放容器
         detile_ad_num=[]
         detile_ad_name=[]
+        #
+        detile_ad_reach=[]
         detile_ad_spend=[]
         detile_ad_impressions=[]
         detile_ad_clicks=[]
@@ -33,6 +35,9 @@ def uuspa_meta_api_link():
         detile_ad_pay_num=[]
         detile_ad_link_clicks=[]
         detile_ad_cvr=[]
+        detile_ad_roas=[]
+        detile_ad_result_cost=[]
+        detile_ad_buy_trans=[]
         
         # 指定開始和結束時間（Unix 時間戳） 
         params = { 
@@ -45,7 +50,7 @@ def uuspa_meta_api_link():
         # 獲取廣告集 
         ad_sets = my_account.get_ads(params=params) 
         #要顯示的欄位 
-        meta_columns=['廣告ID','廣告名稱','花費金額','曝光次數','連結點擊次數','點擊次數(全部)','CTR(連結點閱率)','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率'] 
+        meta_columns=['廣告ID','廣告名稱','觸及人數','花費金額','曝光次數','連結點擊次數','點擊次數(全部)','CTR(連結點閱率)','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率','購買 ROAS(廣告投資報酬率)','每次成果成本','購買轉換值'] 
 
         #迭代每個廣告集並獲取廣告 
         for ad in ad_sets:
@@ -64,6 +69,9 @@ def uuspa_meta_api_link():
                     AdsInsights.Field.clicks,
                     #AdsInsights.Field.conversions,
                     AdsInsights.Field.actions,
+                    AdsInsights.Field.purchase_roas,
+                    AdsInsights.Field.action_values,
+                    AdsInsights.Field.cost_per_action_type,
                 ], 
                 'time_range': { 
                     'since': str(start_search_date),  # 替換為你想要的開始日期 
@@ -73,10 +81,36 @@ def uuspa_meta_api_link():
             insights = Ad(ad_id).get_insights(params=insights_params) 
             
             for insight in insights:
-                
                 #活動數據路徑
                 actions_path=insight['actions']
-                #print(actions_path)
+                #CPA路徑
+                cost_actions_path=insight['cost_per_action_type']
+                #購買轉換值路徑
+                buy_trans_path=insight['action_values']
+                
+                save_index=0
+                #購買轉換值
+                detile_ad_buy_trans_data = [trans['value'] for trans in buy_trans_path if trans['action_type'] == 'onsite_web_app_purchase']
+                try:
+                    print(detile_ad_buy_trans_data)
+                    detile_ad_buy_trans.append(detile_ad_buy_trans_data[0])
+                except:
+                    detile_ad_buy_trans.append('None')
+                #每次成果成本
+                detile_ad_result_cost_data = [trans['value'] for trans in cost_actions_path if trans['action_type'] == 'web_in_store_purchase']
+                try:
+                    detile_ad_result_cost.append(detile_ad_result_cost_data[0])
+                except:
+                    detile_ad_result_cost.append('None')
+                
+                #取得 roas 
+                try:
+                    detile_ad_roas_data=insights[0]['purchase_roas'][0]['value']
+                    detile_ad_roas_data=f'{float(detile_ad_roas_data):.2f}' 
+                    detile_ad_roas.append(detile_ad_roas_data)
+                except:
+                    detile_ad_roas.append('None')
+                
                 save_index=0
                 #取得連結點擊次數
                 for var in range(len(actions_path)):
@@ -131,6 +165,13 @@ def uuspa_meta_api_link():
                 #各項廣告的細節依序存入容器
                 detile_ad_num.append(ad_id)
                 detile_ad_name.append(ad_name)
+                #加入觸及人數
+                try:
+                    detile_ad_reach.append(insight['reach'])
+                except:
+                    detile_ad_reach.append('None')
+                    
+                #
                 try:
                     detile_ad_spend.append(insight['spend'])
                 except:
@@ -149,15 +190,20 @@ def uuspa_meta_api_link():
         ad_data_detile = {
             meta_columns[0]:detile_ad_num,
             meta_columns[1]:detile_ad_name,
-            meta_columns[2]:detile_ad_spend,
-            meta_columns[3]:detile_ad_impressions,
-            meta_columns[4]:detile_ad_link_clicks,
-            meta_columns[5]:detile_ad_clicks,
-            meta_columns[6]:detile_ad_ctr,
-            meta_columns[7]:detile_ad_cpm,
-            meta_columns[8]:detile_ad_cart,
-            meta_columns[9]:detile_ad_pay_num,
-            meta_columns[10]:detile_ad_cvr,
+            meta_columns[2]:detile_ad_reach,
+            meta_columns[3]:detile_ad_spend,
+            meta_columns[4]:detile_ad_impressions,
+            meta_columns[5]:detile_ad_link_clicks,
+            meta_columns[6]:detile_ad_clicks,
+            meta_columns[7]:detile_ad_ctr,
+            meta_columns[8]:detile_ad_cpm,
+            meta_columns[9]:detile_ad_cart,
+            meta_columns[10]:detile_ad_pay_num,
+            meta_columns[11]:detile_ad_cvr,
+            meta_columns[12]:detile_ad_roas,
+            meta_columns[13]:detile_ad_result_cost,
+            meta_columns[14]:detile_ad_buy_trans,
+            
         }
         ad_data_all_detile=pd.DataFrame(ad_data_detile)
         ad_data_all_detile_view=st.dataframe(ad_data_all_detile)
@@ -178,6 +224,7 @@ def uuspa_meta_api_link():
             params = { 
                 'time_range': time_range, 
                 'fields': [ 
+                    AdsInsights.Field.reach,#觸及人數
                     AdsInsights.Field.spend,  # 花費金額 
                     AdsInsights.Field.impressions,  # 曝光次數 
                     AdsInsights.Field.clicks,  # 總點擊次數 
@@ -185,12 +232,24 @@ def uuspa_meta_api_link():
                     AdsInsights.Field.cpm, # CPM(每千次廣告曝光成本) 
                     AdsInsights.Field.actions,#部分數據在活動
                     #AdsInsights.Field.conversions,
+                    AdsInsights.Field.purchase_roas,
+                    AdsInsights.Field.action_values,
+                    AdsInsights.Field.cost_per_action_type,
                 ], 
             }
             #獲取帳戶層級的統計數據 
             insights = my_account.get_insights(params=params) 
+            
+            #購買轉換值:1580 purchase
+            #[0]['cost_per_action_type'][0]['action_type]=='purchase'
+            #"value": "2038"
+            #purchase_roas[0]['value']:.2f
             #活動數據路徑
             actions_path=insights[0]['actions']
+            #CPA路徑
+            cost_actions_path=insights[0]['cost_per_action_type']
+            #購買轉換值路徑
+            buy_trans_path=insights[0]['action_values']
             
             # if len(insights) == 0: 
             #     cal_start_var+=timedelta(days=1) 
@@ -201,8 +260,27 @@ def uuspa_meta_api_link():
             #以下各項如果沒有數據就放入 None
             #儲存索引值，用於判斷以下容器 list 是否放入 None
             
-            
             save_index=0
+            #購買轉換值
+            buy_trans_data = [trans['value'] for trans in buy_trans_path if trans['action_type'] == 'onsite_web_app_purchase']
+            try:
+                buy_trans_list.append(buy_trans_data[0])
+            except:
+                buy_trans_list.append('None')
+            #每次成果成本
+            result_cost_data = [trans['value'] for trans in cost_actions_path if trans['action_type'] == 'web_in_store_purchase']
+            try:
+                result_cost_list.append(result_cost_data[0])
+            except:
+                result_cost_list.append('None')
+            
+            #取得 roas 
+            try:
+                roas_data=insights[0]['purchase_roas'][0]['value']
+                roas_data=f'{float(roas_data):.2f}' 
+                roas_data_list.append(roas_data)
+            except:
+                roas_data_list.append('None')
             #取得連結點擊次數
             for var in range(len(actions_path)):
                 if actions_path[var]['action_type']=='link_click':
@@ -239,11 +317,9 @@ def uuspa_meta_api_link():
             except:
                 cpm_list.append('None')
             #抽取加入購物車選項及存入容器
+            cart_data = [trans['value'] for trans in actions_path if trans['action_type']=='add_to_cart']
             try:
-                cart_data_search=insights[0]['actions']
-                for var in range(len(cart_data_search)):
-                    if cart_data_search[var]['action_type']=='add_to_cart':
-                        cart_list.append(cart_data_search[var]['value'])
+                cart_list.append(cart_data[0])
             except:
                 cart_list.append('None')
             #存入容器
@@ -261,25 +337,51 @@ def uuspa_meta_api_link():
                 clicks_list.append(insights[0]['clicks'])
             except:
                 clicks_list.append('None')
+                
+            #取得觸及人數
+            try:
+                reach_list.append(insights[0]['reach'])
+            except:
+                reach_list.append('None')
             #存入每日日期
             date_list.append(cal_start_var)
             #
             if cal_start_var==cal_end_var: 
                 break
-            cal_start_var+=timedelta(days=1)    
+            cal_start_var+=timedelta(days=1) 
+            
+        # print('******************************')
+        # print(date_list)
+        # print(reach_list)
+        # print(spend_list)
+        # print(impressions_list)
+        # print(link_clicks_list)
+        # print(clicks_list)
+        # print(ctr_list)
+        # print(cpm_list)
+        # print(cart_list)
+        # print(pay_num_list)
+        # print(cvr_list)
+        # print(roas_data_list)
+        # print(result_cost_list)
+        # print(buy_trans_list)
         
         #結果整理成dataframe
         ad_data = {
             meta_columns[0]:date_list,
-            meta_columns[1]:spend_list,
-            meta_columns[2]:impressions_list,
-            meta_columns[3]:link_clicks_list,
-            meta_columns[4]:clicks_list,
-            meta_columns[5]:ctr_list,
-            meta_columns[6]:cpm_list,
-            meta_columns[7]:cart_list,
-            meta_columns[8]:pay_num_list,
-            meta_columns[9]:cvr_list,
+            meta_columns[1]:reach_list,
+            meta_columns[2]:spend_list,
+            meta_columns[3]:impressions_list,
+            meta_columns[4]:link_clicks_list,
+            meta_columns[5]:clicks_list,
+            meta_columns[6]:ctr_list,
+            meta_columns[7]:cpm_list,
+            meta_columns[8]:cart_list,
+            meta_columns[9]:pay_num_list,
+            meta_columns[10]:cvr_list,
+            meta_columns[11]:roas_data_list,
+            meta_columns[12]:result_cost_list,
+            meta_columns[13]:buy_trans_list,
         }
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
@@ -309,54 +411,165 @@ def uuspa_meta_api_link():
         for key,value in enumerate(save_weeks):
             week_date_list.append(f'Week {key+1}: {value[0].date()}~{value[-1].date()}') 
         
-        for var in week_date_list:
-            date_start_end=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',var)
+        for date_var in week_date_list:
+            date_start_end=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',date_var)
             time_range = {
                 'since': str(date_start_end[0]),  # 替換為你想要的開始日期 
                 'until': str(date_start_end[1])   # 替換為你想要的結束日期 
             }
-            # 查詢廣告層級的統計數據 
+            # 查詢廣告層級的統計數據
             params = { 
                 'time_range': time_range, 
                 'fields': [ 
+                    AdsInsights.Field.reach,#觸及人數
                     AdsInsights.Field.spend,  # 花費金額 
                     AdsInsights.Field.impressions,  # 曝光次數 
                     AdsInsights.Field.clicks,  # 總點擊次數 
                     AdsInsights.Field.ctr, # CTR(連結點閱率) 
                     AdsInsights.Field.cpm, # CPM(每千次廣告曝光成本) 
+                    AdsInsights.Field.actions,#部分數據在活動
+                    #AdsInsights.Field.conversions,
+                    AdsInsights.Field.purchase_roas,
+                    AdsInsights.Field.action_values,
+                    AdsInsights.Field.cost_per_action_type,
                 ], 
             }
-            # 獲取帳戶層級的統計數據 
-            insights = my_account.get_insights(params=params)
+            #獲取帳戶層級的統計數據 
+            insights = my_account.get_insights(params=params) 
             
-            # 轉為小數點第二位與百分比 
-            ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
-            cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
-            #存入容器
-            spend_list.append(insights[0]['spend'])
-            impressions_list.append(insights[0]['impressions'])
-            clicks_list.append(insights[0]['clicks'])
-            ctr_list.append(ctr_cal)
-            cpm_list.append(cpm_cal)
-            #存入每禮拜日期
-            date_list.append(var) 
+            #購買轉換值:1580 purchase
+            #[0]['cost_per_action_type'][0]['action_type]=='purchase'
+            #"value": "2038"
+            #purchase_roas[0]['value']:.2f
         
-            #結果整理成dataframe
+            #活動數據路徑
+            actions_path=insights[0]['actions']
+            #CPA路徑
+            cost_actions_path=insights[0]['cost_per_action_type']
+            #購買轉換值路徑
+            buy_trans_path=insights[0]['action_values']
+            
+            # if len(insights) == 0: 
+            #     cal_start_var+=timedelta(days=1) 
+            #     if cal_start_var==cal_end_var: 
+            #         break
+            #     continue 
+
+            #以下各項如果沒有數據就放入 None
+            #儲存索引值，用於判斷以下容器 list 是否放入 None
+            
+            save_index=0
+            #購買轉換值
+            buy_trans_data = [trans['value'] for trans in buy_trans_path if trans['action_type'] == 'onsite_web_app_purchase']
+            try:
+                buy_trans_list.append(buy_trans_data[0])
+            except:
+                buy_trans_list.append('None')
+            #每次成果成本
+            result_cost_data = [trans['value'] for trans in cost_actions_path if trans['action_type'] == 'web_in_store_purchase']
+            try:
+                result_cost_list.append(result_cost_data[0])
+            except:
+                result_cost_list.append('None')
+            
+            #取得 roas 
+            try:
+                roas_data=insights[0]['purchase_roas'][0]['value']
+                roas_data=f'{float(roas_data):.2f}' 
+                roas_data_list.append(roas_data)
+            except:
+                roas_data_list.append('None')
+            #取得連結點擊次數
+            for var in range(len(actions_path)):
+                if actions_path[var]['action_type']=='link_click':
+                    link_clicks_list.append(actions_path[var]['value'])
+                    save_index=var
+                    break
+            if save_index==0:
+                link_clicks_list.append('None')
+            
+            #取得購買次數
+            for var in range(len(actions_path)):
+                if actions_path[var]['action_type']=='purchase':
+                    pay_num_list.append(actions_path[var]['value'])
+                    save_index=var
+                    break
+            if save_index==0:
+                pay_num_list.append('None')
+            #計算 CVR 公式:購買次數÷連結點擊次數
+            try:
+                cvr_list.append(f'{int(pay_num_list[-1])/int(link_clicks_list[-1])*100:.2f}%')
+            except:
+                cvr_list.append('None')    
+            #轉為小數點第二位與百分比
+            #CTR
+            try:
+                ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
+                ctr_list.append(ctr_cal)
+            except:
+                ctr_list.append('None')
+            #CPM    
+            try:
+                cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
+                cpm_list.append(cpm_cal)
+            except:
+                cpm_list.append('None')
+            #抽取加入購物車選項及存入容器
+            cart_data = [trans['value'] for trans in actions_path if trans['action_type']=='add_to_cart']
+            try:
+                cart_list.append(cart_data[0])
+            except:
+                cart_list.append('None')
+            #存入容器
+            try:
+                spend_list.append(insights[0]['spend'])
+            except:
+                spend_list.append('None')
+            
+            try:
+                impressions_list.append(insights[0]['impressions'])
+            except:
+                impressions_list.append('None')
+            
+            try:
+                clicks_list.append(insights[0]['clicks'])
+            except:
+                clicks_list.append('None')
+                
+            #取得觸及人數
+            try:
+                reach_list.append(insights[0]['reach'])
+            except:
+                reach_list.append('None')
+            
+            date_list.append(date_var) 
+        
+        #結果整理成dataframe
         ad_data = {
             meta_columns[0]:date_list,
-            meta_columns[1]:spend_list,
-            meta_columns[2]:impressions_list,
-            meta_columns[3]:clicks_list,
-            meta_columns[4]:ctr_list,
-            meta_columns[5]:cpm_list,
+            meta_columns[1]:reach_list,
+            meta_columns[2]:spend_list,
+            meta_columns[3]:impressions_list,
+            meta_columns[4]:link_clicks_list,
+            meta_columns[5]:clicks_list,
+            meta_columns[6]:ctr_list,
+            meta_columns[7]:cpm_list,
+            meta_columns[8]:cart_list,
+            meta_columns[9]:pay_num_list,
+            meta_columns[10]:cvr_list,
+            meta_columns[11]:roas_data_list,
+            meta_columns[12]:result_cost_list,
+            meta_columns[13]:buy_trans_list,
         }
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
-        single_date=st.selectbox('請選擇日期',date_list)
+
+        single_date=st.selectbox('請選擇日期',date_list) 
+        
         if single_date:
            date_filter=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',single_date)
            view_ad_detile(date_filter[0], date_filter[1])
-    
+        
     #每月
     def month_view_ad(start_date,end_date):
         
@@ -380,55 +593,214 @@ def uuspa_meta_api_link():
         for key, value in enumerate(save_months):
             month_date_list.append(f'Month {key + 1}: {value[0].date()}~{value[-1].date()}')
 
-        # 打印每個月的日期範圍
-        for var in month_date_list:
-            date_start_end=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',var)
+        for date_var in month_date_list:
+            date_start_end=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',date_var)
             time_range = {
                 'since': str(date_start_end[0]),  # 替換為你想要的開始日期 
                 'until': str(date_start_end[1])   # 替換為你想要的結束日期 
             }
-            # 查詢廣告層級的統計數據 
+            # 查詢廣告層級的統計數據
             params = { 
                 'time_range': time_range, 
                 'fields': [ 
+                    AdsInsights.Field.reach,#觸及人數
                     AdsInsights.Field.spend,  # 花費金額 
                     AdsInsights.Field.impressions,  # 曝光次數 
                     AdsInsights.Field.clicks,  # 總點擊次數 
                     AdsInsights.Field.ctr, # CTR(連結點閱率) 
                     AdsInsights.Field.cpm, # CPM(每千次廣告曝光成本) 
+                    AdsInsights.Field.actions,#部分數據在活動
+                    #AdsInsights.Field.conversions,
+                    AdsInsights.Field.purchase_roas,
+                    AdsInsights.Field.action_values,
+                    AdsInsights.Field.cost_per_action_type,
                 ], 
             }
-            # 獲取帳戶層級的統計數據 
-            insights = my_account.get_insights(params=params)
+            #獲取帳戶層級的統計數據 
+            insights = my_account.get_insights(params=params) 
             
-            # 轉為小數點第二位與百分比 
-            ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
-            cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
-            #存入容器
-            spend_list.append(insights[0]['spend'])
-            impressions_list.append(insights[0]['impressions'])
-            clicks_list.append(insights[0]['clicks'])
-            ctr_list.append(ctr_cal)
-            cpm_list.append(cpm_cal)
-            #存入每禮拜日期
-            date_list.append(var) 
+            #購買轉換值:1580 purchase
+            #[0]['cost_per_action_type'][0]['action_type]=='purchase'
+            #"value": "2038"
+            #purchase_roas[0]['value']:.2f
         
-            #結果整理成dataframe
+            #活動數據路徑
+            actions_path=insights[0]['actions']
+            #CPA路徑
+            cost_actions_path=insights[0]['cost_per_action_type']
+            #購買轉換值路徑
+            buy_trans_path=insights[0]['action_values']
+            
+            # if len(insights) == 0: 
+            #     cal_start_var+=timedelta(days=1) 
+            #     if cal_start_var==cal_end_var: 
+            #         break
+            #     continue 
+
+            #以下各項如果沒有數據就放入 None
+            #儲存索引值，用於判斷以下容器 list 是否放入 None
+            
+            save_index=0
+            #購買轉換值
+            buy_trans_data = [trans['value'] for trans in buy_trans_path if trans['action_type'] == 'onsite_web_app_purchase']
+            try:
+                buy_trans_list.append(buy_trans_data[0])
+            except:
+                buy_trans_list.append('None')
+            #每次成果成本
+            result_cost_data = [trans['value'] for trans in cost_actions_path if trans['action_type'] == 'web_in_store_purchase']
+            try:
+                result_cost_list.append(result_cost_data[0])
+            except:
+                result_cost_list.append('None')
+            
+            #取得 roas 
+            try:
+                roas_data=insights[0]['purchase_roas'][0]['value']
+                roas_data=f'{float(roas_data):.2f}' 
+                roas_data_list.append(roas_data)
+            except:
+                roas_data_list.append('None')
+            #取得連結點擊次數
+            for var in range(len(actions_path)):
+                if actions_path[var]['action_type']=='link_click':
+                    link_clicks_list.append(actions_path[var]['value'])
+                    save_index=var
+                    break
+            if save_index==0:
+                link_clicks_list.append('None')
+            
+            #取得購買次數
+            for var in range(len(actions_path)):
+                if actions_path[var]['action_type']=='purchase':
+                    pay_num_list.append(actions_path[var]['value'])
+                    save_index=var
+                    break
+            if save_index==0:
+                pay_num_list.append('None')
+            #計算 CVR 公式:購買次數÷連結點擊次數
+            try:
+                cvr_list.append(f'{int(pay_num_list[-1])/int(link_clicks_list[-1])*100:.2f}%')
+            except:
+                cvr_list.append('None')    
+            #轉為小數點第二位與百分比
+            #CTR
+            try:
+                ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
+                ctr_list.append(ctr_cal)
+            except:
+                ctr_list.append('None')
+            #CPM    
+            try:
+                cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
+                cpm_list.append(cpm_cal)
+            except:
+                cpm_list.append('None')
+            #抽取加入購物車選項及存入容器
+            cart_data = [trans['value'] for trans in actions_path if trans['action_type']=='add_to_cart']
+            try:
+                cart_list.append(cart_data[0])
+            except:
+                cart_list.append('None')
+            #存入容器
+            try:
+                spend_list.append(insights[0]['spend'])
+            except:
+                spend_list.append('None')
+            
+            try:
+                impressions_list.append(insights[0]['impressions'])
+            except:
+                impressions_list.append('None')
+            
+            try:
+                clicks_list.append(insights[0]['clicks'])
+            except:
+                clicks_list.append('None')
+                
+            #取得觸及人數
+            try:
+                reach_list.append(insights[0]['reach'])
+            except:
+                reach_list.append('None')
+            
+            date_list.append(date_var) 
+        
+        #結果整理成dataframe
         ad_data = {
             meta_columns[0]:date_list,
-            meta_columns[1]:spend_list,
-            meta_columns[2]:impressions_list,
-            meta_columns[3]:clicks_list,
-            meta_columns[4]:ctr_list,
-            meta_columns[5]:cpm_list,
-            meta_columns[6]:cart_list,
+            meta_columns[1]:reach_list,
+            meta_columns[2]:spend_list,
+            meta_columns[3]:impressions_list,
+            meta_columns[4]:link_clicks_list,
+            meta_columns[5]:clicks_list,
+            meta_columns[6]:ctr_list,
+            meta_columns[7]:cpm_list,
+            meta_columns[8]:cart_list,
+            meta_columns[9]:pay_num_list,
+            meta_columns[10]:cvr_list,
+            meta_columns[11]:roas_data_list,
+            meta_columns[12]:result_cost_list,
+            meta_columns[13]:buy_trans_list,
         }
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
-        single_date=st.selectbox('請選擇日期',date_list)
+
+        single_date=st.selectbox('請選擇日期',date_list) 
+        
         if single_date:
-            date_filter=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',single_date)
-            view_ad_detile(date_filter[0], date_filter[1])
+           date_filter=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',single_date)
+           view_ad_detile(date_filter[0], date_filter[1])
+        
+        # 打印每個月的日期範圍
+        # for var in month_date_list:
+        #     date_start_end=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',var)
+        #     time_range = {
+        #         'since': str(date_start_end[0]),  # 替換為你想要的開始日期 
+        #         'until': str(date_start_end[1])   # 替換為你想要的結束日期 
+        #     }
+        #     # 查詢廣告層級的統計數據 
+        #     params = { 
+        #         'time_range': time_range, 
+        #         'fields': [ 
+        #             AdsInsights.Field.spend,  # 花費金額 
+        #             AdsInsights.Field.impressions,  # 曝光次數 
+        #             AdsInsights.Field.clicks,  # 總點擊次數 
+        #             AdsInsights.Field.ctr, # CTR(連結點閱率) 
+        #             AdsInsights.Field.cpm, # CPM(每千次廣告曝光成本) 
+        #         ], 
+        #     }
+        #     # 獲取帳戶層級的統計數據 
+        #     insights = my_account.get_insights(params=params)
+            
+        #     # 轉為小數點第二位與百分比 
+        #     ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
+        #     cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
+        #     #存入容器
+        #     spend_list.append(insights[0]['spend'])
+        #     impressions_list.append(insights[0]['impressions'])
+        #     clicks_list.append(insights[0]['clicks'])
+        #     ctr_list.append(ctr_cal)
+        #     cpm_list.append(cpm_cal)
+        #     #存入每禮拜日期
+        #     date_list.append(var) 
+        
+        #     #結果整理成dataframe
+        # ad_data = {
+        #     meta_columns[0]:date_list,
+        #     meta_columns[1]:spend_list,
+        #     meta_columns[2]:impressions_list,
+        #     meta_columns[3]:clicks_list,
+        #     meta_columns[4]:ctr_list,
+        #     meta_columns[5]:cpm_list,
+        #     meta_columns[6]:cart_list,
+        # }
+        # ad_data_all=pd.DataFrame(ad_data)
+        # ad_data_all_view=st.dataframe(ad_data_all)
+        # single_date=st.selectbox('請選擇日期',date_list)
+        # if single_date:
+        #     date_filter=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',single_date)
+        #     view_ad_detile(date_filter[0], date_filter[1])
     
     #uuspa_meta_api_link函式主程式
     my_app_id = '1612145376022074'
@@ -439,7 +811,7 @@ def uuspa_meta_api_link():
     # 指定你的廣告帳戶 ID 
     my_account = AdAccount('act_1316371069004495')
     #要顯示的欄位 
-    meta_columns=['日期','花費金額','曝光次數','連結點擊次數','點擊次數(全部)','CTR(連結點閱率)','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率'] 
+    meta_columns=['日期','觸及人數','花費金額','曝光次數','連結點擊次數','點擊次數(全部)','CTR(連結點閱率)','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率','購買 ROAS(廣告投資報酬率)','每次成果成本','購買轉換值'] 
     #儲存結果的容器
     date_list=[]
     spend_list=[]
@@ -451,6 +823,10 @@ def uuspa_meta_api_link():
     pay_num_list=[]
     link_clicks_list=[]
     cvr_list=[]
+    reach_list=[]
+    roas_data_list=[]
+    result_cost_list=[]
+    buy_trans_list=[]
     
     if ad_group=='廣告':
         
@@ -504,41 +880,48 @@ def uupon_meta_api_link():
                     AdsInsights.Field.ctr, 
                     AdsInsights.Field.clicks,
                     #新增測試
-                    #AdsInsights.Field.cost_per_action_type,
-                ], 
+                    AdsInsights.Field.actions,
+                    AdsInsights.Field.action_values,
+                    AdsInsights.Field.cost_per_action_type,
+                    AdsInsights.Field.cost_per_unique_action_type,
+                    Campaign.Field.objective
+                ],
+                'level': 'ad',
                 'time_range': { 
                     'since': str(start_search_date),  # 替換為你想要的開始日期 
                     'until': str(end_search_date)   # 替換為你想要的結束日期 
                 } 
             } 
             insights = Ad(ad_id).get_insights(params=insights_params) 
-            for insight in insights:
+            print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            print(insights)
+        #     for insight in insights:
 
-                ctr_cal=f'{float(insight["ctr"]):.2f}%' 
-                cpm_cal=f'{float(insight["cpm"]):.2f}' 
-                #各項廣告的細節依序存入容器
-                detile_ad_num.append(ad_id)
-                detile_ad_name.append(ad_name)
-                detile_ad_spend.append(insight['spend'])
-                detile_ad_impressions.append(insight['impressions'])
-                detile_ad_clicks.append(insight['clicks'])
-                detile_ad_ctr.append(ctr_cal)
-                detile_ad_cpm.append(cpm_cal)
+        #         ctr_cal=f'{float(insight["ctr"]):.2f}%' 
+        #         cpm_cal=f'{float(insight["cpm"]):.2f}' 
+        #         #各項廣告的細節依序存入容器
+        #         detile_ad_num.append(ad_id)
+        #         detile_ad_name.append(ad_name)
+        #         detile_ad_spend.append(insight['spend'])
+        #         detile_ad_impressions.append(insight['impressions'])
+        #         detile_ad_clicks.append(insight['clicks'])
+        #         detile_ad_ctr.append(ctr_cal)
+        #         detile_ad_cpm.append(cpm_cal)
 
-        ad_data_detile = {
-            meta_columns[0]:detile_ad_num,
-            meta_columns[1]:detile_ad_name,
-            meta_columns[2]:detile_ad_spend,
-            meta_columns[3]:detile_ad_impressions,
-            meta_columns[4]:detile_ad_clicks,
-            meta_columns[5]:detile_ad_ctr,
-            meta_columns[6]:detile_ad_cpm,
-            #meta_columns[7]:detile_ad_cpa,
-        }
-        ad_data_all_detile=pd.DataFrame(ad_data_detile)
-        ad_data_all_detile_view=st.dataframe(ad_data_all_detile)
+        # ad_data_detile = {
+        #     meta_columns[0]:detile_ad_num,
+        #     meta_columns[1]:detile_ad_name,
+        #     meta_columns[2]:detile_ad_spend,
+        #     meta_columns[3]:detile_ad_impressions,
+        #     meta_columns[4]:detile_ad_clicks,
+        #     meta_columns[5]:detile_ad_ctr,
+        #     meta_columns[6]:detile_ad_cpm,
+        #     #meta_columns[7]:detile_ad_cpa,
+        # }
+        # ad_data_all_detile=pd.DataFrame(ad_data_detile)
+        # ad_data_all_detile_view=st.dataframe(ad_data_all_detile)
     
-    #每日    
+    #單日    
     def single_view_ad(start_date,end_date):
         
         cal_start_var=start_date
@@ -563,7 +946,6 @@ def uupon_meta_api_link():
             }
             # 獲取帳戶層級的統計數據 
             insights = my_account.get_insights(params=params) 
-
             if len(insights) == 0: 
                 cal_start_var+=timedelta(days=1) 
                 if cal_start_var==cal_end_var: 
@@ -601,7 +983,7 @@ def uupon_meta_api_link():
         
         single_date=st.selectbox('請選擇日期',date_list)
         
-        if single_date: 
+        if single_date:
             view_ad_detile(single_date,single_date)
     
     #每禮拜
@@ -752,6 +1134,7 @@ def uupon_meta_api_link():
     FacebookAdsApi.init(my_app_id, my_app_secret, my_access_token) 
     # 指定你的廣告帳戶 ID 
     my_account = AdAccount('act_1033945910984802') 
+    
     #要顯示的欄位 
     meta_columns=['日期','花費金額','曝光次數','點擊次數(全部)','CTR(連結點閱率)','CPM(每千次廣告曝光成本)'] 
     #儲存結果的容器
@@ -863,3 +1246,4 @@ if st.session_state.lock:
                     st.write("UUSPA Python link GA4 API")
                 elif ad_platform=='GA4':
                     st.write("UUSPA Python link GA4 API")
+                    
