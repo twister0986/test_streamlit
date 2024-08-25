@@ -79,7 +79,7 @@ def uuspa_meta_api_link():
                 } 
             } 
             insights = Ad(ad_id).get_insights(params=insights_params) 
-            
+            print(insights)
             for insight in insights:
                 #活動數據路徑
                 actions_path=insight['actions']
@@ -92,7 +92,7 @@ def uuspa_meta_api_link():
                 #購買轉換值
                 detile_ad_buy_trans_data = [trans['value'] for trans in buy_trans_path if trans['action_type'] == 'onsite_web_app_purchase']
                 try:
-                    print(detile_ad_buy_trans_data)
+                    #print(detile_ad_buy_trans_data)
                     detile_ad_buy_trans.append(detile_ad_buy_trans_data[0])
                 except:
                     detile_ad_buy_trans.append('None')
@@ -103,21 +103,19 @@ def uuspa_meta_api_link():
                 except:
                     detile_ad_result_cost.append('None')
                 
-                #取得 roas 
+                #取得 roas
                 try:
-                    detile_ad_roas_data=insights[0]['purchase_roas'][0]['value']
+                    detile_ad_roas_data=insight['purchase_roas'][0]['value']
                     detile_ad_roas_data=f'{float(detile_ad_roas_data):.2f}' 
                     detile_ad_roas.append(detile_ad_roas_data)
                 except:
                     detile_ad_roas.append('None')
                 
-                save_index=0
                 #取得連結點擊次數
                 for var in range(len(actions_path)):
                     if actions_path[var]['action_type']=='link_click':
                         detile_ad_link_clicks.append(actions_path[var]['value'])
                         save_index=var
-                        
                         break
                 if save_index==0:
                     detile_ad_link_clicks.append('None')
@@ -130,7 +128,7 @@ def uuspa_meta_api_link():
                         break
                 if save_index==0:
                     detile_ad_pay_num.append('None')
-                
+                save_index=0
                 #計算 CVR 公式:購買次數÷連結點擊次數
                 try:
                     detile_ad_cvr.append(f'{int(detile_ad_pay_num[-1])/int(detile_ad_link_clicks[-1])*100:.2f}%')
@@ -150,7 +148,7 @@ def uuspa_meta_api_link():
                 except:
                     detile_ad_cpm.append('None')
                 #抽取加入購物車選項及存入容器
-                save_index=0
+                
                 for var in range(len(actions_path)):
                     if actions_path[var]['action_type']=='add_to_cart':
                         detile_ad_cart.append(actions_path[var]['value'])
@@ -159,7 +157,7 @@ def uuspa_meta_api_link():
                         break
                 if save_index==0:
                     detile_ad_cart.append('None')
-                
+                save_index=0
     
                 #存入容器
                 #各項廣告的細節依序存入容器
@@ -239,18 +237,27 @@ def uuspa_meta_api_link():
             }
             #獲取帳戶層級的統計數據 
             insights = my_account.get_insights(params=params) 
-            
+            # print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            # print(insights)
             #購買轉換值:1580 purchase
             #[0]['cost_per_action_type'][0]['action_type]=='purchase'
             #"value": "2038"
             #purchase_roas[0]['value']:.2f
             #活動數據路徑
-            actions_path=insights[0]['actions']
+            try:
+                actions_path=insights[0]['actions']
+            except:
+                actions_path=[]
             #CPA路徑
-            cost_actions_path=insights[0]['cost_per_action_type']
+            try:
+                cost_actions_path=insights[0]['cost_per_action_type']
+            except:
+                cost_actions_path=[]
             #購買轉換值路徑
-            buy_trans_path=insights[0]['action_values']
-            
+            try:
+                buy_trans_path=insights[0]['action_values']
+            except:
+                buy_trans_path=[]
             # if len(insights) == 0: 
             #     cal_start_var+=timedelta(days=1) 
             #     if cal_start_var==cal_end_var: 
@@ -289,7 +296,7 @@ def uuspa_meta_api_link():
                     break
             if save_index==0:
                 link_clicks_list.append('None')
-            
+            save_index=0
             #取得購買次數
             for var in range(len(actions_path)):
                 if actions_path[var]['action_type']=='purchase':
@@ -298,6 +305,7 @@ def uuspa_meta_api_link():
                     break
             if save_index==0:
                 pay_num_list.append('None')
+            save_index=0
             #計算 CVR 公式:購買次數÷連結點擊次數
             try:
                 cvr_list.append(f'{int(pay_num_list[-1])/int(link_clicks_list[-1])*100:.2f}%')
@@ -805,7 +813,7 @@ def uuspa_meta_api_link():
     #uuspa_meta_api_link函式主程式
     my_app_id = '1612145376022074'
     my_app_secret = '67c6c59518b46c5151e2279801c389fb' 
-    my_access_token = 'EAAW6PNh2zjoBOz7YkPNsvvGiNJu2d2PGL6DxpFh8d49WzGlKlbvkgWZB9ldnc6keGZC2P4ZB0vQWke8atdxIupWT1WBpjs1NpHxIFvAgok1Gen4p56pwDQ7CZA0L3ZBZAGJCiSxlXFpbamo29fgmJSoLmRDzQKgiFWrXT42XIZCI3qLLKzZA4bZAXohr052rxKkn5tmwSqrNf' 
+    my_access_token = 'EAAW6PNh2zjoBOy2r4ok5k80yZBu0NW9xHGVYinb5ZBikdPZBmuk5P3BlCZCTMOQRq8ierEzU33ldYiquy9wx12Q69i7bFShbTlLvYZBpodaDfSiSV22s8w5tICJhEKsUGd9oqDAE5uThFIqlNXGniyhsuzxR38Iw0tSyLArZAH6b3RC3MCiq8OppKrGrYdzrqouEcznIz7' 
     # 初始化 Facebook 廣告 API 
     FacebookAdsApi.init(my_app_id, my_app_secret, my_access_token) 
     # 指定你的廣告帳戶 ID 
@@ -1129,7 +1137,7 @@ def uupon_meta_api_link():
     #uupon_meta_api_link函式主程式
     my_app_id = '762664479369512' 
     my_app_secret = '7122b271254c71d3303909eedd6ef938' 
-    my_access_token = 'EAAK1o6lgKSgBO9UIXaeCZCZCbYLswVZCTZCB5ovsAUawnZBLpoYc7ZBemgPq2j5ZBPnqRC1J2z09082cgtfzcT1hpjgfLZAy0zlGZCimSUd7q3402fILsg0xUKF2nZCQprvsWYCPwqnn4ZBCoTJfDpA0icJ17VlgWaaWcZAmIdZBcGRH8Vob5nZB7P5R9c2eiDZAq0HfHxFKuBdmvZBl' 
+    my_access_token = 'EAAK1o6lgKSgBO4sYE3u0s0GtTgPr0m83KDYyrWeQ1zXNVjETra57Hc6vmSAyXFBFWEJxM20dk9aXvnhGHidb6WFpzXF1OdZCZAbRhN5ZCvfzZCP2iVVQ2KmHH8XxOLDvX9mq3z6oa115gLocXnZAOW3DlgYqyfGZCOdazhYmerLquP3xtMKCHssD0hZAsCPZCooMchsZCcSiH' 
     # 初始化 Facebook 廣告 API 
     FacebookAdsApi.init(my_app_id, my_app_secret, my_access_token) 
     # 指定你的廣告帳戶 ID 
@@ -1246,4 +1254,3 @@ if st.session_state.lock:
                     st.write("UUSPA Python link GA4 API")
                 elif ad_platform=='GA4':
                     st.write("UUSPA Python link GA4 API")
-                    
