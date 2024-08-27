@@ -1137,7 +1137,7 @@ def uupon_meta_api_link():
     #uupon_meta_api_link函式主程式
     my_app_id = '762664479369512' 
     my_app_secret = '7122b271254c71d3303909eedd6ef938' 
-    my_access_token = 'EAAK1o6lgKSgBO4sYE3u0s0GtTgPr0m83KDYyrWeQ1zXNVjETra57Hc6vmSAyXFBFWEJxM20dk9aXvnhGHidb6WFpzXF1OdZCZAbRhN5ZCvfzZCP2iVVQ2KmHH8XxOLDvX9mq3z6oa115gLocXnZAOW3DlgYqyfGZCOdazhYmerLquP3xtMKCHssD0hZAsCPZCooMchsZCcSiH' 
+    my_access_token = 'EAAK1o6IKSgBO80napTkwIbbmj2AIQBnXYskswBZBaZBLDv3xvtv3fN59L9XwHVyIMIMaVtVcT4RJ5rZBEOVx6Q3eZBWPviukVSLKabklOhafQo21 TgJnZCz0ZCpraLS6rMyDcgOdPjIkqWAVijPMwnqekU1AHqJ' 
     # 初始化 Facebook 廣告 API 
     FacebookAdsApi.init(my_app_id, my_app_secret, my_access_token) 
     # 指定你的廣告帳戶 ID 
