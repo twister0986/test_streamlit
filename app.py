@@ -971,7 +971,7 @@ def uupon_meta_api_link():
                 if cal_start_var==cal_end_var: 
                     break
                 continue 
-            print(insights)
+            #print(insights)
             # 轉為小數點第二位與百分比 
             ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
             cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
