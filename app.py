@@ -854,12 +854,14 @@ def uupon_meta_api_link():
         #細節存放容器
         detile_ad_num=[]
         detile_ad_name=[]
+        
         detile_ad_spend=[]
         detile_ad_impressions=[]
         detile_ad_clicks=[]
         detile_ad_ctr=[]
         detile_ad_cpm=[]
         detile_ad_reach=[]
+        detile_ad_cpc=[]
         # 指定開始和結束時間（Unix 時間戳） 
         params = { 
             'time_range': { 
@@ -871,11 +873,11 @@ def uupon_meta_api_link():
         # 獲取廣告集 
         ad_sets = my_account.get_ads(params=params) 
         #要顯示的欄位 
-        meta_columns=['廣告ID','廣告名稱','花費金額','曝光次數','點擊次數(全部)','CTR(連結點閱率)','CPM(每千次廣告曝光成本)','觸及人數'] 
+        meta_columns=['廣告ID','廣告名稱','花費金額','曝光次數','觸及人數','點擊次數(全部)','CTR(全部)','CPM(每千次廣告曝光成本)','CPC(全部)'] 
         #迭代每個廣告集並獲取廣告 
         for ad in ad_sets: 
             #避免過量讀取 
-            #ti.sleep(1)
+            ti.sleep(0.5)
             ad_id = ad['id']  
             ad_name = ad['name']
             insights_params = { 
@@ -889,15 +891,7 @@ def uupon_meta_api_link():
                     AdsInsights.Field.clicks,
                     #新增測試
                     AdsInsights.Field.actions,
-                    #AdsInsights.Field.action_values,
-                    #AdsInsights.Field.cost_per_action_type,
-                    #AdsInsights.Field.cost_per_unique_action_type,
-                    #Campaign.Field.objective
-                    #AdsInsights.Field.actions,#部分數據在活動
-                    #AdsInsights.Field.conversions,
-                    #AdsInsights.Field.purchase_roas,
-                    #AdsInsights.Field.action_values,
-                    #AdsInsights.Field.cost_per_action_type,
+                    AdsInsights.Field.cpc,
                 ],
                 'time_range': { 
                     'since': str(start_search_date),  # 替換為你想要的開始日期 
@@ -908,7 +902,7 @@ def uupon_meta_api_link():
             #print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
             
             for insight in insights:
-
+                ti.sleep(0.5)
                 ctr_cal=f'{float(insight["ctr"]):.2f}%' 
                 cpm_cal=f'{float(insight["cpm"]):.2f}' 
                 #各項廣告的細節依序存入容器
@@ -918,7 +912,12 @@ def uupon_meta_api_link():
                 detile_ad_impressions.append(insight['impressions'])
                 detile_ad_clicks.append(insight['clicks'])
                 detile_ad_ctr.append(ctr_cal)
-                detile_ad_cpm.append(cpm_cal)
+                detile_ad_cpm.append('NT$'+str(round(float(cpm_cal))))
+                #加入cpc
+                try:
+                    detile_ad_cpc.append('NT$'+str(round(float(insight['cpc']))))
+                except:
+                    detile_ad_cpc.append('None')
                 #加入觸及人數
                 try:
                     detile_ad_reach.append(insight['reach'])
@@ -930,10 +929,11 @@ def uupon_meta_api_link():
             meta_columns[1]:detile_ad_name,
             meta_columns[2]:detile_ad_spend,
             meta_columns[3]:detile_ad_impressions,
-            meta_columns[4]:detile_ad_clicks,
-            meta_columns[5]:detile_ad_ctr,
-            meta_columns[6]:detile_ad_cpm,
-            meta_columns[7]:detile_ad_reach,
+            meta_columns[4]:detile_ad_reach,
+            meta_columns[5]:detile_ad_clicks,
+            meta_columns[6]:detile_ad_ctr,
+            meta_columns[7]:detile_ad_cpm,
+            meta_columns[8]:detile_ad_cpc,
         }
         ad_data_all_detile=pd.DataFrame(ad_data_detile)
         ad_data_all_detile_view=st.dataframe(ad_data_all_detile)
@@ -944,6 +944,7 @@ def uupon_meta_api_link():
         cal_start_var=start_date
         cal_end_var=end_date
         while True:
+            ti.sleep(0.5)
             # 判斷日期是否相等機制
             # 指定日期範圍 
             time_range = {
@@ -959,6 +960,8 @@ def uupon_meta_api_link():
                     AdsInsights.Field.clicks,  # 總點擊次數 
                     AdsInsights.Field.ctr, # CTR(連結點閱率) 
                     AdsInsights.Field.cpm, # CPM(每千次廣告曝光成本) 
+                    AdsInsights.Field.cpc,
+                    AdsInsights.Field.reach,
                 ], 
             }
             # 獲取帳戶層級的統計數據 
@@ -968,7 +971,7 @@ def uupon_meta_api_link():
                 if cal_start_var==cal_end_var: 
                     break
                 continue 
-
+            print(insights)
             # 轉為小數點第二位與百分比 
             ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
             cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
@@ -977,7 +980,9 @@ def uupon_meta_api_link():
             impressions_list.append(insights[0]['impressions'])
             clicks_list.append(insights[0]['clicks'])
             ctr_list.append(ctr_cal)
-            cpm_list.append(cpm_cal)
+            cpm_list.append('NT$'+str(round(float(cpm_cal))))
+            cpc_list.append('NT$'+str(round(float(insights[0]['cpc']))))
+            reach_list.append(insights[0]['reach'])
             #存入每日日期
             date_list.append(cal_start_var)
             
@@ -992,8 +997,10 @@ def uupon_meta_api_link():
             meta_columns[1]:spend_list,
             meta_columns[2]:impressions_list,
             meta_columns[3]:clicks_list,
-            meta_columns[4]:ctr_list,
-            meta_columns[5]:cpm_list,
+            meta_columns[4]:reach_list,
+            meta_columns[5]:ctr_list,
+            meta_columns[6]:cpm_list,
+            meta_columns[7]:cpc_list,
         }
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
@@ -1012,6 +1019,7 @@ def uupon_meta_api_link():
         current_weeks=[]
         
         for data_var in dates: 
+            ti.sleep(0.5)
             if data_var.weekday()==0 and current_weeks: 
                 save_weeks.append(current_weeks)
                 current_weeks=[]
@@ -1024,6 +1032,7 @@ def uupon_meta_api_link():
             week_date_list.append(f'Week {key+1}: {value[0].date()}~{value[-1].date()}') 
         
         for var in week_date_list:
+            ti.sleep(1)
             date_start_end=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',var)
             time_range = {
                 'since': str(date_start_end[0]),  # 替換為你想要的開始日期 
@@ -1038,11 +1047,13 @@ def uupon_meta_api_link():
                     AdsInsights.Field.clicks,  # 總點擊次數 
                     AdsInsights.Field.ctr, # CTR(連結點閱率) 
                     AdsInsights.Field.cpm, # CPM(每千次廣告曝光成本) 
+                    AdsInsights.Field.cpc,
+                    AdsInsights.Field.reach,
                 ], 
             }
             # 獲取帳戶層級的統計數據 
             insights = my_account.get_insights(params=params)
-            
+            # print(insights)
             # 轉為小數點第二位與百分比 
             ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
             cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
@@ -1051,25 +1062,31 @@ def uupon_meta_api_link():
             impressions_list.append(insights[0]['impressions'])
             clicks_list.append(insights[0]['clicks'])
             ctr_list.append(ctr_cal)
-            cpm_list.append(cpm_cal)
+            cpm_list.append('NT$'+str(round(float(cpm_cal))))
+            cpc_list.append('NT$'+str(round(float(insights[0]['cpc']))))
+            reach_list.append(insights[0]['reach'])
             #存入每禮拜日期
-            date_list.append(var) 
+            date_list.append(var)   
         
-            #結果整理成dataframe
+        #結果整理成dataframe
+        
         ad_data = {
             meta_columns[0]:date_list,
             meta_columns[1]:spend_list,
             meta_columns[2]:impressions_list,
             meta_columns[3]:clicks_list,
-            meta_columns[4]:ctr_list,
-            meta_columns[5]:cpm_list,
+            meta_columns[4]:reach_list,
+            meta_columns[5]:ctr_list,
+            meta_columns[6]:cpm_list,
+            meta_columns[7]:cpc_list,
         }
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
+        
         single_date=st.selectbox('請選擇日期',date_list)
         if single_date:
-           date_filter=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',single_date)
-           view_ad_detile(date_filter[0], date_filter[1])
+            date_filter=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',single_date)
+            view_ad_detile(date_filter[0], date_filter[1])
     
     #每月
     def month_view_ad(start_date,end_date):
@@ -1096,6 +1113,7 @@ def uupon_meta_api_link():
 
         # 打印每個月的日期範圍
         for var in month_date_list:
+            ti.sleep(0.5)
             date_start_end=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',var)
             time_range = {
                 'since': str(date_start_end[0]),  # 替換為你想要的開始日期 
@@ -1110,11 +1128,13 @@ def uupon_meta_api_link():
                     AdsInsights.Field.clicks,  # 總點擊次數 
                     AdsInsights.Field.ctr, # CTR(連結點閱率) 
                     AdsInsights.Field.cpm, # CPM(每千次廣告曝光成本) 
+                    AdsInsights.Field.cpc,
+                    AdsInsights.Field.reach,
                 ], 
             }
             # 獲取帳戶層級的統計數據 
             insights = my_account.get_insights(params=params)
-            
+            # print(insights)
             # 轉為小數點第二位與百分比 
             ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
             cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
@@ -1123,37 +1143,43 @@ def uupon_meta_api_link():
             impressions_list.append(insights[0]['impressions'])
             clicks_list.append(insights[0]['clicks'])
             ctr_list.append(ctr_cal)
-            cpm_list.append(cpm_cal)
+            cpm_list.append('NT$'+str(round(float(cpm_cal))))
+            cpc_list.append('NT$'+str(round(float(insights[0]['cpc']))))
+            reach_list.append(insights[0]['reach'])
             #存入每禮拜日期
-            date_list.append(var) 
+            date_list.append(var)   
         
-            #結果整理成dataframe
+        #結果整理成dataframe
+        
         ad_data = {
             meta_columns[0]:date_list,
             meta_columns[1]:spend_list,
             meta_columns[2]:impressions_list,
             meta_columns[3]:clicks_list,
-            meta_columns[4]:ctr_list,
-            meta_columns[5]:cpm_list,
+            meta_columns[4]:reach_list,
+            meta_columns[5]:ctr_list,
+            meta_columns[6]:cpm_list,
+            meta_columns[7]:cpc_list,
         }
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
+        
         single_date=st.selectbox('請選擇日期',date_list)
         if single_date:
             date_filter=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',single_date)
             view_ad_detile(date_filter[0], date_filter[1])
     
     #uupon_meta_api_link函式主程式
-    my_app_id = '1234434214675152'
-    my_app_secret = 'aae5dd5bbbf296a08f25582b503a3643'
-    my_access_token = 'EAARithzdQtABO0GDRb5FPVdqXDFQHrl1ZBD5nGX6tmWjCYFYqorNUyrB6iIjdZCvMoyl3varTQVO66g5zCfYvhgWZBW5IxjxAAAYwWPYzFpdGeZCIMOI5jQhtjjDMRxJrWnE6obVnkOsf5laQTZAP8GJvCs0Gdw38tvZA37rAZCuhIQgjf9YTVch5a69LZAUKmfdBZBTKcQbD'
+    my_app_id = '1868786530287339'
+    my_app_secret = '51fcba79dca88260982ee026d76d0035'
+    my_access_token = 'EAAajpsVMfusBOZB9LAps3T7XQh4Y7eHsPQMxHwQgyoXal0If6bd7gh8NDVPqcTAgaOkc9LzulDsbN2y9ktT8J4Bq8nf6qZBTobVg3TRCKKzLpotkRvaTnZBC1m9MZAhZBSZCL5jrHEBeQKKHLt5ZBUbwijj5CtK5dctbgFsoWpAbLiek2QCeiuy1NlXp6MnbHAZCEWHLPoa2'
     # 初始化 Facebook 廣告 API 
     FacebookAdsApi.init(my_app_id, my_app_secret, my_access_token) 
     # 指定你的廣告帳戶 ID 
     my_account = AdAccount('act_1033945910984802') 
     
     #要顯示的欄位 
-    meta_columns=['日期','花費金額','曝光次數','點擊次數(全部)','CTR(連結點閱率)','CPM(每千次廣告曝光成本)'] 
+    meta_columns=['日期','花費金額','曝光次數','點擊次數(全部)','觸及人數','CTR(全部)','CPM(每千次廣告曝光成本)','CPC(全部)'] 
     #儲存結果的容器
     date_list=[]
     spend_list=[]
@@ -1161,6 +1187,8 @@ def uupon_meta_api_link():
     clicks_list=[]
     ctr_list=[]
     cpm_list=[]
+    cpc_list=[]
+    reach_list=[]
     
     if ad_group=='廣告':
         
