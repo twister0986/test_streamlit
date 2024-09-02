@@ -871,7 +871,19 @@ def uupon_meta_api_link():
             'fields': ['name','id']
         }
         # 獲取廣告集 
-        ad_sets = my_account.get_ads(params=params) 
+        #ad_sets = my_account.get_ads(params=params) 
+        
+        
+        my_app_id2 = '1549404199339644'
+        my_app_secret2 = 'b2d77e99db3964fe68975d7a66107147'
+        my_access_token2 = 'EAAWBLMbqRnwBOxZBURCbpAcZAJO3vknK1hO3F5O4JIsJU5M1ZCr9IdBqLVVZByPJ26yc6TYNn4WOfEKf18F3gYCplmmwjhZAzVlZBlZASfIqZBeFYZADMVx50WN5Aw2IDMPnLkYzWVuGUio0lQCZAhPfTQBD76P9Fvh9WvDFAxXF2zea5PEvDtKYsL7ukX4lIaCHdrIODGFo4O'
+        # 初始化 Facebook 廣告 API 
+        FacebookAdsApi.init(my_app_id2, my_app_secret2, my_access_token2) 
+        # 指定你的廣告帳戶 ID 
+        my_account2 = AdAccount('act_1033945910984802') 
+        ad_sets = my_account2.get_ads(params=params)
+        
+        
         #要顯示的欄位 
         meta_columns=['廣告ID','廣告名稱','花費金額','曝光次數','觸及人數','點擊次數(全部)','CTR(全部)','CPM(每千次廣告曝光成本)','CPC(全部)'] 
         #迭代每個廣告集並獲取廣告 
@@ -898,21 +910,24 @@ def uupon_meta_api_link():
                     'until': str(end_search_date)   # 替換為你想要的結束日期 
                 } 
             } 
+            
             insights = Ad(ad_id).get_insights(params=insights_params) 
             #print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
             
             for insight in insights:
                 ti.sleep(0.5)
-                ctr_cal=f'{float(insight["ctr"]):.2f}%' 
-                cpm_cal=f'{float(insight["cpm"]):.2f}' 
-                #各項廣告的細節依序存入容器
-                detile_ad_num.append(ad_id)
-                detile_ad_name.append(ad_name)
-                detile_ad_spend.append(insight['spend'])
-                detile_ad_impressions.append(insight['impressions'])
-                detile_ad_clicks.append(insight['clicks'])
-                detile_ad_ctr.append(ctr_cal)
-                detile_ad_cpm.append('NT$'+str(round(float(cpm_cal))))
+                try:
+                    ctr_cal=f'{float(insight["ctr"]):.2f}%' 
+                    detile_ad_ctr.append(ctr_cal)
+                except:
+                    detile_ad_ctr.append('None')
+                    
+                try:
+                    cpm_cal=f'{float(insight["cpm"]):.2f}'
+                    detile_ad_cpm.append('NT$'+str(round(float(cpm_cal))))
+                except:
+                    detile_ad_cpm.append('None')
+                    
                 #加入cpc
                 try:
                     detile_ad_cpc.append('NT$'+str(round(float(insight['cpc']))))
@@ -923,7 +938,25 @@ def uupon_meta_api_link():
                     detile_ad_reach.append(insight['reach'])
                 except:
                     detile_ad_reach.append('None')
-                    
+                #各項廣告的細節依序存入容器
+                detile_ad_num.append(ad_id)
+                detile_ad_name.append(ad_name)
+                
+                try:
+                    detile_ad_spend.append(insight['spend'])
+                except:
+                    detile_ad_spend.append('None')
+                
+                try:
+                    detile_ad_impressions.append(insight['impressions'])
+                except:
+                    detile_ad_impressions.append('None')
+                
+                try:
+                    detile_ad_clicks.append(insight['clicks'])
+                except:
+                    detile_ad_clicks.append('None')
+
         ad_data_detile = {
             meta_columns[0]:detile_ad_num,
             meta_columns[1]:detile_ad_name,
@@ -966,23 +999,39 @@ def uupon_meta_api_link():
             }
             # 獲取帳戶層級的統計數據 
             insights = my_account.get_insights(params=params) 
+            
             if len(insights) == 0: 
                 cal_start_var+=timedelta(days=1) 
                 if cal_start_var==cal_end_var: 
                     break
                 continue 
             #print(insights)
-            # 轉為小數點第二位與百分比 
-            ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
-            cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
             #存入容器
             spend_list.append(insights[0]['spend'])
             impressions_list.append(insights[0]['impressions'])
             clicks_list.append(insights[0]['clicks'])
-            ctr_list.append(ctr_cal)
-            cpm_list.append('NT$'+str(round(float(cpm_cal))))
-            cpc_list.append('NT$'+str(round(float(insights[0]['cpc']))))
-            reach_list.append(insights[0]['reach'])
+            # 轉為小數點第二位與百分比
+            try:
+                ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
+                ctr_list.append(ctr_cal)
+            except:
+                ctr_list.append('None')
+                
+            try:
+                cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
+                cpm_list.append('NT$'+str(round(float(cpm_cal))))
+            except:
+                cpm_list.append('None')
+                
+            try:
+                cpc_list.append('NT$'+str(round(float(insights[0]['cpc']))))
+            except:
+                cpc_list.append('None')
+            
+            try:
+                reach_list.append(insights[0]['reach'])
+            except:
+                reach_list.append('None')
             #存入每日日期
             date_list.append(cal_start_var)
             
@@ -1005,16 +1054,17 @@ def uupon_meta_api_link():
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
         
+        date_list.insert(0, '請選擇日期')
         single_date=st.selectbox('請選擇日期',date_list)
         
-        if single_date:
+        if single_date!='請選擇日期':
             view_ad_detile(single_date,single_date)
     
     #每禮拜
     def view_ad(start_date,end_date):
         
         dates=pd.date_range(start_date,end_date) 
-        week_date_list=[] 
+        week_date_list=[]
         save_weeks=[] 
         current_weeks=[]
         
@@ -1055,16 +1105,31 @@ def uupon_meta_api_link():
             insights = my_account.get_insights(params=params)
             # print(insights)
             # 轉為小數點第二位與百分比 
-            ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
-            cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
+            try:
+                ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
+                ctr_list.append(ctr_cal)
+            except:
+                ctr_list.append('None')
+                
+            try:
+                cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
+                cpm_list.append('NT$'+str(round(float(cpm_cal))))
+            except:
+                cpm_list.append('None')
+                
+            try:
+                cpc_list.append('NT$'+str(round(float(insights[0]['cpc']))))
+            except:
+                cpc_list.append('None')
+            
+            try:
+                reach_list.append(insights[0]['reach'])
+            except:
+                reach_list.append('None')
             #存入容器
             spend_list.append(insights[0]['spend'])
             impressions_list.append(insights[0]['impressions'])
             clicks_list.append(insights[0]['clicks'])
-            ctr_list.append(ctr_cal)
-            cpm_list.append('NT$'+str(round(float(cpm_cal))))
-            cpc_list.append('NT$'+str(round(float(insights[0]['cpc']))))
-            reach_list.append(insights[0]['reach'])
             #存入每禮拜日期
             date_list.append(var)   
         
@@ -1083,8 +1148,10 @@ def uupon_meta_api_link():
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
         
+        date_list.insert(0, '請選擇日期')
         single_date=st.selectbox('請選擇日期',date_list)
-        if single_date:
+        
+        if single_date!='請選擇日期':
             date_filter=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',single_date)
             view_ad_detile(date_filter[0], date_filter[1])
     
@@ -1136,16 +1203,31 @@ def uupon_meta_api_link():
             insights = my_account.get_insights(params=params)
             # print(insights)
             # 轉為小數點第二位與百分比 
-            ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
-            cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
+            try:
+                ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
+                ctr_list.append(ctr_cal)
+            except:
+                ctr_list.append('None')
+                
+            try:
+                cpm_cal=f'{float(insights[0]["cpm"]):.2f}' 
+                cpm_list.append('NT$'+str(round(float(cpm_cal))))
+            except:
+                cpm_list.append('None')
+                
+            try:
+                cpc_list.append('NT$'+str(round(float(insights[0]['cpc']))))
+            except:
+                cpc_list.append('None')
+                
+            try:
+                reach_list.append(insights[0]['reach'])
+            except:
+                reach_list.append('None')
             #存入容器
             spend_list.append(insights[0]['spend'])
             impressions_list.append(insights[0]['impressions'])
             clicks_list.append(insights[0]['clicks'])
-            ctr_list.append(ctr_cal)
-            cpm_list.append('NT$'+str(round(float(cpm_cal))))
-            cpc_list.append('NT$'+str(round(float(insights[0]['cpc']))))
-            reach_list.append(insights[0]['reach'])
             #存入每禮拜日期
             date_list.append(var)   
         
@@ -1164,15 +1246,17 @@ def uupon_meta_api_link():
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
         
+        date_list.insert(0, '請選擇日期')
         single_date=st.selectbox('請選擇日期',date_list)
-        if single_date:
+        
+        if single_date!='請選擇日期':
             date_filter=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',single_date)
             view_ad_detile(date_filter[0], date_filter[1])
     
     #uupon_meta_api_link函式主程式
     my_app_id = '1234434214675152'
     my_app_secret = 'aae5dd5bbbf296a08f25582b503a3643'
-    my_access_token = 'EAARithzdQtABO0GDRb5FPVdqXDFQHrl1ZBD5nGX6tmWjCYFYqorNUyrB6iIjdZCvMoyl3varTQVO66g5zCfYvhgWZBW5IxjxAAAYwWPYzFpdGeZCIMOI5jQhtjjDMRxJrWnE6obVnkOsf5laQTZAP8GJvCs0Gdw38tvZA37rAZCuhIQgjf9YTVch5a69LZAUKmfdBZBTKcQbD'
+    my_access_token = 'EAARithzdQtABOxA7ZA3zk6zE1qNmL540cqUoKrZCSKh17ZCRd8kUuACZCPlZBZAfsd3MZBZBB6DdhMAHFGzPZBrVaaymsYELgJrnLaUlINSQBgCyk4ZA3A1l9r5eF4aHTcZADcMdXI62WcgZCYfiMpF63PYZALK4h9Qd3V8nM7V9TzOLq4RHBSZADCnzGS5d1ZCZBiBtDZB4xcfpL3XOh'
     # 初始化 Facebook 廣告 API 
     FacebookAdsApi.init(my_app_id, my_app_secret, my_access_token) 
     # 指定你的廣告帳戶 ID 
@@ -1225,7 +1309,7 @@ st.write("""
         font-size:20px !important;
     }
     </style>
-    <p class="big-font">※溫馨小提示 : 為確保系統能正常執行，建議在操作上不要太過頻繁，看清楚選項再進行動作</p>
+    <p class="big-font">※溫馨小提示 : 為確保系統能正常執行，建議在操作上不要太過頻繁，看清楚選項再進行動作，查詢廣告數據的一次操作間隔五分鐘</p>
 """, unsafe_allow_html=True)
 st.write("""
     <style>
@@ -1234,6 +1318,14 @@ st.write("""
     }
     </style>
     <p class="big-font">⁂ 錯誤應對機制 : 先讓網頁休息5~10分鐘再進行作業</p>
+""", unsafe_allow_html=True)
+st.write("""
+    <style>
+    .big-font {
+        font-size:20px !important;
+    }
+    </style>
+    <p class="big-font">‼‼ 日期組合選擇單日時，日期範圍以不超過十五日為佳</p>
 """, unsafe_allow_html=True)
 # 選擇廣告類別:UUPON、buty99
 choose_ad_class=st.selectbox('請選擇廣告類別', ['UUPON','UUSPA(Buty99)'],disabled=st.session_state.lock,key='w1')
