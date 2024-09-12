@@ -28,7 +28,8 @@ def uuspa_meta_api_link():
         detile_ad_reach=[]
         detile_ad_spend=[]
         detile_ad_impressions=[]
-        detile_ad_clicks=[]
+        detile_ad_acr=[]
+        detile_ad_ctr_link=[]
         detile_ad_ctr=[]
         detile_ad_cpm=[]
         detile_ad_cart=[]
@@ -38,6 +39,8 @@ def uuspa_meta_api_link():
         detile_ad_roas=[]
         detile_ad_result_cost=[]
         detile_ad_buy_trans=[]
+        #新增連結頁面瀏覽結果
+        detile_ad_link_page_view=[]
         
         # 指定開始和結束時間（Unix 時間戳） 
         params = { 
@@ -50,7 +53,7 @@ def uuspa_meta_api_link():
         # 獲取廣告集 
         ad_sets = my_account.get_ads(params=params) 
         #要顯示的欄位 
-        meta_columns=['廣告ID','廣告名稱','觸及人數','花費金額','曝光次數','連結點擊次數','點擊次數(全部)','CTR(連結點閱率)','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率','購買 ROAS(廣告投資報酬率)','每次成果成本','購買轉換值'] 
+        meta_columns=['廣告ID','廣告名稱','加入購物車率ACR','花費金額','曝光次數','連結點擊次數','CTR(連結點閱率)','CTR(全部)','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率','購買 ROAS(廣告投資報酬率)','每次成果成本','購買轉換值'] 
 
         #迭代每個廣告集並獲取廣告 
         for ad in ad_sets:
@@ -84,10 +87,15 @@ def uuspa_meta_api_link():
                 #活動數據路徑
                 actions_path=insight['actions']
                 #CPA路徑
-                cost_actions_path=insight['cost_per_action_type']
+                try:
+                    cost_actions_path=insight['cost_per_action_type']
+                except:
+                    cost_actions_path=None
                 #購買轉換值路徑
-                buy_trans_path=insight['action_values']
-                
+                try:
+                    buy_trans_path=insight['action_values']
+                except:
+                    buy_trans_path=None
                 save_index=0
                 #購買轉換值
                 detile_ad_buy_trans_data = [trans['value'] for trans in buy_trans_path if trans['action_type'] == 'onsite_web_app_purchase']
@@ -97,8 +105,9 @@ def uuspa_meta_api_link():
                 except:
                     detile_ad_buy_trans.append('None')
                 #每次成果成本
-                detile_ad_result_cost_data = [trans['value'] for trans in cost_actions_path if trans['action_type'] == 'web_in_store_purchase']
                 try:
+                    detile_ad_result_cost_data = [trans['value'] for trans in cost_actions_path if trans['action_type'] == 'web_in_store_purchase']
+                
                     detile_ad_result_cost.append(detile_ad_result_cost_data[0])
                 except:
                     detile_ad_result_cost.append('None')
@@ -164,35 +173,47 @@ def uuspa_meta_api_link():
                 detile_ad_num.append(ad_id)
                 detile_ad_name.append(ad_name)
                 #加入觸及人數
+                #改為加入購物車率ACR
+                for var in range(len(actions_path)):
+                    if actions_path[var]['action_type']=='landing_page_view':
+                        detile_ad_link_page_view.append(actions_path[var]['value'])
+                        save_index=var
+                        break
+                if save_index==0:
+                    detile_ad_link_page_view.append('None')
+                save_index=0
+                
                 try:
-                    detile_ad_reach.append(insight['reach'])
+                    acr_cal=f'{float(detile_ad_cart[-1])/float(detile_ad_link_page_view[-1])*100:.2f}%'
+                    detile_ad_acr.append(acr_cal)
                 except:
-                    detile_ad_reach.append('None')
+                    detile_ad_acr.append('None')
                     
                 #
                 try:
                     detile_ad_spend.append(insight['spend'])
                 except:
                     detile_ad_spend.append('None')
-                    
+                # 
                 try:    
                     detile_ad_impressions.append(insight['impressions'])
                 except:
                     detile_ad_impressions.append('None')
-                
+                #CTR(連結點閱率)
                 try:
-                    detile_ad_clicks.append(insight['clicks'])
+                    detile_ad_ctr_link_cal=f'{(float(detile_ad_link_clicks[-1])/float(detile_ad_impressions[-1])*100):.2f}%' 
+                    detile_ad_ctr_link.append(detile_ad_ctr_link_cal)
                 except:
-                    detile_ad_clicks.append('None')
-
+                    detile_ad_ctr_link.append('None')
+                    
         ad_data_detile = {
             meta_columns[0]:detile_ad_num,
             meta_columns[1]:detile_ad_name,
-            meta_columns[2]:detile_ad_reach,
+            meta_columns[2]:detile_ad_acr,
             meta_columns[3]:detile_ad_spend,
             meta_columns[4]:detile_ad_impressions,
             meta_columns[5]:detile_ad_link_clicks,
-            meta_columns[6]:detile_ad_clicks,
+            meta_columns[6]:detile_ad_ctr_link,
             meta_columns[7]:detile_ad_ctr,
             meta_columns[8]:detile_ad_cpm,
             meta_columns[9]:detile_ad_cart,
@@ -244,6 +265,7 @@ def uuspa_meta_api_link():
             #"value": "2038"
             #purchase_roas[0]['value']:.2f
             #活動數據路徑
+            #print(insights)
             try:
                 actions_path=insights[0]['actions']
             except:
@@ -312,7 +334,7 @@ def uuspa_meta_api_link():
             except:
                 cvr_list.append('None')    
             #轉為小數點第二位與百分比
-            #CTR
+            #CTR(全部)
             try:
                 ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
                 ctr_list.append(ctr_cal)
@@ -335,20 +357,34 @@ def uuspa_meta_api_link():
                 spend_list.append(insights[0]['spend'])
             except:
                 spend_list.append('None')
-            
+            #曝光次數
             try:
                 impressions_list.append(insights[0]['impressions'])
             except:
                 impressions_list.append('None')
-            
+            #原本的點擊次數(全部)
+            #改為CTR(連結點閱率)，計算公式:連結點擊次數/曝光次數*100%
             try:
-                clicks_list.append(insights[0]['clicks'])
+                ctr_link_cal=f'{(float(link_clicks_list[-1])/float(impressions_list[-1])*100):.2f}%' 
+                ctr_link_list.append(ctr_link_cal)
             except:
-                clicks_list.append('None')
+                ctr_link_list.append('None')
                 
             #取得觸及人數
+            #改為加入購物車率ACR，計算公式:加入購物車次數/連結頁面瀏覽次數*100%
+            
+            for var in range(len(actions_path)):
+                if actions_path[var]['action_type']=='landing_page_view':
+                    link_page_view.append(actions_path[var]['value'])
+                    save_index=var
+                    break
+            if save_index==0:
+                link_page_view.append('None')
+            save_index=0
+            
             try:
-                reach_list.append(insights[0]['reach'])
+                acr_cal=f'{float(cart_list[-1])/float(link_page_view[-1])*100:.2f}%'
+                reach_list.append(acr_cal)
             except:
                 reach_list.append('None')
             #存入每日日期
@@ -381,7 +417,7 @@ def uuspa_meta_api_link():
             meta_columns[2]:spend_list,
             meta_columns[3]:impressions_list,
             meta_columns[4]:link_clicks_list,
-            meta_columns[5]:clicks_list,
+            meta_columns[5]:ctr_link_list,
             meta_columns[6]:ctr_list,
             meta_columns[7]:cpm_list,
             meta_columns[8]:cart_list,
@@ -538,15 +574,29 @@ def uuspa_meta_api_link():
                 impressions_list.append(insights[0]['impressions'])
             except:
                 impressions_list.append('None')
-            
+            #原本的點擊次數(全部)
+            #改為CTR(連結點閱率)，計算公式:連結點擊次數/曝光次數*100%
             try:
-                clicks_list.append(insights[0]['clicks'])
+                ctr_link_cal=f'{(float(link_clicks_list[-1])/float(impressions_list[-1])*100):.2f}%' 
+                ctr_link_list.append(ctr_link_cal)
             except:
-                clicks_list.append('None')
+                ctr_link_list.append('None')
                 
             #取得觸及人數
+            #改為加入購物車率ACR，計算公式:加入購物車次數/連結頁面瀏覽次數*100%
+            
+            for var in range(len(actions_path)):
+                if actions_path[var]['action_type']=='landing_page_view':
+                    link_page_view.append(actions_path[var]['value'])
+                    save_index=var
+                    break
+            if save_index==0:
+                link_page_view.append('None')
+            save_index=0
+            
             try:
-                reach_list.append(insights[0]['reach'])
+                acr_cal=f'{float(cart_list[-1])/float(link_page_view[-1])*100:.2f}%'
+                reach_list.append(acr_cal)
             except:
                 reach_list.append('None')
             
@@ -559,7 +609,7 @@ def uuspa_meta_api_link():
             meta_columns[2]:spend_list,
             meta_columns[3]:impressions_list,
             meta_columns[4]:link_clicks_list,
-            meta_columns[5]:clicks_list,
+            meta_columns[5]:ctr_link_list,
             meta_columns[6]:ctr_list,
             meta_columns[7]:cpm_list,
             meta_columns[8]:cart_list,
@@ -721,14 +771,29 @@ def uuspa_meta_api_link():
             except:
                 impressions_list.append('None')
             
+            #原本的點擊次數(全部)
+            #改為CTR(連結點閱率)，計算公式:連結點擊次數/曝光次數*100%
             try:
-                clicks_list.append(insights[0]['clicks'])
+                ctr_link_cal=f'{(float(link_clicks_list[-1])/float(impressions_list[-1])*100):.2f}%' 
+                ctr_link_list.append(ctr_link_cal)
             except:
-                clicks_list.append('None')
+                ctr_link_list.append('None')
                 
             #取得觸及人數
+            #改為加入購物車率ACR，計算公式:加入購物車次數/連結頁面瀏覽次數*100%
+            
+            for var in range(len(actions_path)):
+                if actions_path[var]['action_type']=='landing_page_view':
+                    link_page_view.append(actions_path[var]['value'])
+                    save_index=var
+                    break
+            if save_index==0:
+                link_page_view.append('None')
+            save_index=0
+            
             try:
-                reach_list.append(insights[0]['reach'])
+                acr_cal=f'{float(cart_list[-1])/float(link_page_view[-1])*100:.2f}%'
+                reach_list.append(acr_cal)
             except:
                 reach_list.append('None')
             
@@ -741,7 +806,7 @@ def uuspa_meta_api_link():
             meta_columns[2]:spend_list,
             meta_columns[3]:impressions_list,
             meta_columns[4]:link_clicks_list,
-            meta_columns[5]:clicks_list,
+            meta_columns[5]:ctr_link_list,
             meta_columns[6]:ctr_list,
             meta_columns[7]:cpm_list,
             meta_columns[8]:cart_list,
@@ -819,12 +884,12 @@ def uuspa_meta_api_link():
     # 指定你的廣告帳戶 ID 
     my_account = AdAccount('act_1316371069004495')
     #要顯示的欄位 
-    meta_columns=['日期','觸及人數','花費金額','曝光次數','連結點擊次數','點擊次數(全部)','CTR(連結點閱率)','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率','購買 ROAS(廣告投資報酬率)','每次成果成本','購買轉換值'] 
+    meta_columns=['日期','加入購物車率ACR','花費金額','曝光次數','連結點擊次數','CTR(連結點閱率)','CTR(全部)','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率','購買 ROAS(廣告投資報酬率)','每次成果成本','購買轉換值'] 
     #儲存結果的容器
     date_list=[]
     spend_list=[]
     impressions_list=[]
-    clicks_list=[]
+    ctr_link_list=[]
     ctr_list=[]
     cpm_list=[]
     cart_list=[]
@@ -835,6 +900,8 @@ def uuspa_meta_api_link():
     roas_data_list=[]
     result_cost_list=[]
     buy_trans_list=[]
+    #新增連結頁面瀏覽結果
+    link_page_view=[]
     
     if ad_group=='廣告':
         
