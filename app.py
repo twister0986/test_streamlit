@@ -53,7 +53,7 @@ def uuspa_meta_api_link():
         # 獲取廣告集 
         ad_sets = my_account.get_ads(params=params) 
         #要顯示的欄位 
-        meta_columns=['廣告ID','廣告名稱','加入購物車率ACR','花費金額','曝光次數','連結點擊次數','CTR(連結點閱率)','CTR(全部)','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率','購買 ROAS(廣告投資報酬率)','每次成果成本','購買轉換值'] 
+        meta_columns=['廣告ID','廣告名稱','加入購物車率ACR','花費金額','曝光次數','連結點擊次數','CTR(連結點閱率)','FB-平均客單價','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率','購買 ROAS(廣告投資報酬率)','每次成果成本','購買轉換值'] 
 
         #迭代每個廣告集並獲取廣告 
         for ad in ad_sets:
@@ -144,10 +144,11 @@ def uuspa_meta_api_link():
                 except:
                     detile_ad_cvr.append('None')    
                 #轉為小數點第二位與百分比
-                #CTR
+                #CTR(全部)，
+                #改為FB-平均客單價，公式:購買轉換值÷購買次數
                 try:
-                    ctr_cal=f'{float(insight["ctr"]):.2f}%' 
-                    detile_ad_ctr.append(ctr_cal)
+                    detile_ad_ctr_cal=f'{float(detile_ad_buy_trans[-1])/float(detile_ad_pay_num[-1]):.2f}'
+                    detile_ad_ctr.append(detile_ad_ctr_cal)
                 except:
                     detile_ad_ctr.append('None')
                 #CPM    
@@ -334,9 +335,10 @@ def uuspa_meta_api_link():
             except:
                 cvr_list.append('None')    
             #轉為小數點第二位與百分比
-            #CTR(全部)
+            #CTR(全部)，
+            #改為FB-平均客單價，公式:購買轉換值÷購買次數
             try:
-                ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
+                ctr_cal=f'{float(buy_trans_data[-1])/float(pay_num_list[-1]):.2f}'
                 ctr_list.append(ctr_cal)
             except:
                 ctr_list.append('None')
@@ -546,9 +548,10 @@ def uuspa_meta_api_link():
             except:
                 cvr_list.append('None')    
             #轉為小數點第二位與百分比
-            #CTR
+            #CTR(全部)，
+            #改為FB-平均客單價，公式:購買轉換值÷購買次數
             try:
-                ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
+                ctr_cal=f'{float(buy_trans_data[-1])/float(pay_num_list[-1]):.2f}'
                 ctr_list.append(ctr_cal)
             except:
                 ctr_list.append('None')
@@ -884,7 +887,7 @@ def uuspa_meta_api_link():
     # 指定你的廣告帳戶 ID 
     my_account = AdAccount('act_1316371069004495')
     #要顯示的欄位 
-    meta_columns=['日期','加入購物車率ACR','花費金額','曝光次數','連結點擊次數','CTR(連結點閱率)','CTR(全部)','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率','購買 ROAS(廣告投資報酬率)','每次成果成本','購買轉換值'] 
+    meta_columns=['日期','FB-加入購物車率','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-平均客單價','FB-CPM(每千次廣告曝光成本)','FB-加入購物車','購買次數','FB-CVR','FB-ROAS','FB-CPA','FB-轉換價值'] 
     #儲存結果的容器
     date_list=[]
     spend_list=[]
