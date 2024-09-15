@@ -53,8 +53,10 @@ def uuspa_meta_api_link():
         # 獲取廣告集 
         ad_sets = my_account.get_ads(params=params) 
         #要顯示的欄位 
-        meta_columns=['廣告ID','廣告名稱','加入購物車率ACR','花費金額','曝光次數','連結點擊次數','CTR(連結點閱率)','FB-平均客單價','CPM(每千次廣告曝光成本)','加到購物車次數','購買次數','CVR轉換率','購買 ROAS(廣告投資報酬率)','每次成果成本','購買轉換值'] 
-
+        #meta_columns=['廣告ID','廣告名稱','FB-加入購物車率','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-平均客單價','FB-CPM(每千次廣告曝光成本)','FB-加入購物車','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-CPA','FB-轉換價值'] 
+        #調整次數
+        meta_columns=['廣告ID','廣告名稱','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-加入購物車','FB-加入購物車率','FB-CPM(每千次廣告曝光成本)','FB-CPA','FB-訂單數','FB-ROAS','FB-轉換價值','FB-CVR轉換率','FB-平均客單價',] 
+        
         #迭代每個廣告集並獲取廣告 
         for ad in ad_sets:
             #避免過量讀取 
@@ -207,23 +209,42 @@ def uuspa_meta_api_link():
                 except:
                     detile_ad_ctr_link.append('None')
                     
+        # ad_data_detile = {
+        #     meta_columns[0]:detile_ad_num,
+        #     meta_columns[1]:detile_ad_name,
+        #     meta_columns[2]:detile_ad_acr,
+        #     meta_columns[3]:detile_ad_spend,
+        #     meta_columns[4]:detile_ad_impressions,
+        #     meta_columns[5]:detile_ad_link_clicks,
+        #     meta_columns[6]:detile_ad_ctr_link,
+        #     meta_columns[7]:detile_ad_ctr,
+        #     meta_columns[8]:detile_ad_cpm,
+        #     meta_columns[9]:detile_ad_cart,
+        #     meta_columns[10]:detile_ad_pay_num,
+        #     meta_columns[11]:detile_ad_cvr,
+        #     meta_columns[12]:detile_ad_roas,
+        #     meta_columns[13]:detile_ad_result_cost,
+        #     meta_columns[14]:detile_ad_buy_trans,
+            
+        # }
+        
         ad_data_detile = {
             meta_columns[0]:detile_ad_num,
             meta_columns[1]:detile_ad_name,
-            meta_columns[2]:detile_ad_acr,
-            meta_columns[3]:detile_ad_spend,
-            meta_columns[4]:detile_ad_impressions,
-            meta_columns[5]:detile_ad_link_clicks,
-            meta_columns[6]:detile_ad_ctr_link,
-            meta_columns[7]:detile_ad_ctr,
+            
+            meta_columns[2]:detile_ad_spend,
+            meta_columns[3]:detile_ad_impressions,
+            meta_columns[4]:detile_ad_link_clicks,
+            meta_columns[5]:detile_ad_ctr_link,
+            meta_columns[6]:detile_ad_cart,
+            meta_columns[7]:detile_ad_link_page_view,
             meta_columns[8]:detile_ad_cpm,
-            meta_columns[9]:detile_ad_cart,
+            meta_columns[9]:detile_ad_result_cost,
             meta_columns[10]:detile_ad_pay_num,
             meta_columns[11]:detile_ad_cvr,
             meta_columns[12]:detile_ad_roas,
-            meta_columns[13]:detile_ad_result_cost,
-            meta_columns[14]:detile_ad_buy_trans,
-            
+            meta_columns[13]:detile_ad_buy_trans,
+            meta_columns[14]:detile_ad_ctr,
         }
         ad_data_all_detile=pd.DataFrame(ad_data_detile)
         ad_data_all_detile_view=st.dataframe(ad_data_all_detile)
@@ -415,19 +436,19 @@ def uuspa_meta_api_link():
         #結果整理成dataframe
         ad_data = {
             meta_columns[0]:date_list,
-            meta_columns[1]:reach_list,
-            meta_columns[2]:spend_list,
-            meta_columns[3]:impressions_list,
-            meta_columns[4]:link_clicks_list,
-            meta_columns[5]:ctr_link_list,
-            meta_columns[6]:ctr_list,
+            meta_columns[1]:spend_list,
+            meta_columns[2]:impressions_list,
+            meta_columns[3]:link_clicks_list,
+            meta_columns[4]:ctr_link_list,
+            meta_columns[5]:cart_list,
+            meta_columns[6]:reach_list,
             meta_columns[7]:cpm_list,
-            meta_columns[8]:cart_list,
+            meta_columns[8]:result_cost_list,
             meta_columns[9]:pay_num_list,
             meta_columns[10]:cvr_list,
             meta_columns[11]:roas_data_list,
-            meta_columns[12]:result_cost_list,
-            meta_columns[13]:buy_trans_list,
+            meta_columns[12]:buy_trans_list,
+            meta_columns[13]:ctr_list,
         }
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
@@ -608,19 +629,19 @@ def uuspa_meta_api_link():
         #結果整理成dataframe
         ad_data = {
             meta_columns[0]:date_list,
-            meta_columns[1]:reach_list,
-            meta_columns[2]:spend_list,
-            meta_columns[3]:impressions_list,
-            meta_columns[4]:link_clicks_list,
-            meta_columns[5]:ctr_link_list,
-            meta_columns[6]:ctr_list,
+            meta_columns[1]:spend_list,
+            meta_columns[2]:impressions_list,
+            meta_columns[3]:link_clicks_list,
+            meta_columns[4]:ctr_link_list,
+            meta_columns[5]:cart_list,
+            meta_columns[6]:reach_list,
             meta_columns[7]:cpm_list,
-            meta_columns[8]:cart_list,
+            meta_columns[8]:result_cost_list,
             meta_columns[9]:pay_num_list,
             meta_columns[10]:cvr_list,
             meta_columns[11]:roas_data_list,
-            meta_columns[12]:result_cost_list,
-            meta_columns[13]:buy_trans_list,
+            meta_columns[12]:buy_trans_list,
+            meta_columns[13]:ctr_list,
         }
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
@@ -805,19 +826,19 @@ def uuspa_meta_api_link():
         #結果整理成dataframe
         ad_data = {
             meta_columns[0]:date_list,
-            meta_columns[1]:reach_list,
-            meta_columns[2]:spend_list,
-            meta_columns[3]:impressions_list,
-            meta_columns[4]:link_clicks_list,
-            meta_columns[5]:ctr_link_list,
-            meta_columns[6]:ctr_list,
+            meta_columns[1]:spend_list,
+            meta_columns[2]:impressions_list,
+            meta_columns[3]:link_clicks_list,
+            meta_columns[4]:ctr_link_list,
+            meta_columns[5]:cart_list,
+            meta_columns[6]:reach_list,
             meta_columns[7]:cpm_list,
-            meta_columns[8]:cart_list,
+            meta_columns[8]:result_cost_list,
             meta_columns[9]:pay_num_list,
             meta_columns[10]:cvr_list,
             meta_columns[11]:roas_data_list,
-            meta_columns[12]:result_cost_list,
-            meta_columns[13]:buy_trans_list,
+            meta_columns[12]:buy_trans_list,
+            meta_columns[13]:ctr_list,
         }
         ad_data_all=pd.DataFrame(ad_data)
         ad_data_all_view=st.dataframe(ad_data_all)
@@ -887,7 +908,10 @@ def uuspa_meta_api_link():
     # 指定你的廣告帳戶 ID 
     my_account = AdAccount('act_1316371069004495')
     #要顯示的欄位 
-    meta_columns=['日期','FB-加入購物車率','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-平均客單價','FB-CPM(每千次廣告曝光成本)','FB-加入購物車','購買次數','FB-CVR','FB-ROAS','FB-CPA','FB-轉換價值'] 
+    #meta_columns=['日期','FB-加入購物車率','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-平均客單價','FB-CPM(每千次廣告曝光成本)','FB-加入購物車','購買次數','FB-CVR','FB-ROAS','FB-CPA','FB-轉換價值'] 
+    #調整次數
+    meta_columns=['日期','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-加入購物車','FB-加入購物車率','FB-CPM(每千次廣告曝光成本)','FB-CPA','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-轉換價值','FB-平均客單價',] 
+    
     #儲存結果的容器
     date_list=[]
     spend_list=[]
