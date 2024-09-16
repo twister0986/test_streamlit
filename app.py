@@ -237,7 +237,7 @@ def uuspa_meta_api_link():
             meta_columns[4]:detile_ad_link_clicks,
             meta_columns[5]:detile_ad_ctr_link,
             meta_columns[6]:detile_ad_cart,
-            meta_columns[7]:detile_ad_link_page_view,
+            meta_columns[7]:detile_ad_acr,
             meta_columns[8]:detile_ad_cpm,
             meta_columns[9]:detile_ad_result_cost,
             meta_columns[10]:detile_ad_pay_num,
