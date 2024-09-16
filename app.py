@@ -55,7 +55,7 @@ def uuspa_meta_api_link():
         #要顯示的欄位 
         #meta_columns=['廣告ID','廣告名稱','FB-加入購物車率','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-平均客單價','FB-CPM(每千次廣告曝光成本)','FB-加入購物車','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-CPA','FB-轉換價值'] 
         #調整次數
-        meta_columns=['廣告ID','廣告名稱','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-加入購物車','FB-加入購物車率','FB-CPM(每千次廣告曝光成本)','FB-CPA','FB-訂單數','FB-ROAS','FB-轉換價值','FB-CVR轉換率','FB-平均客單價',] 
+        meta_columns=['廣告ID','廣告名稱','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-加入購物車','FB-加入購物車率','FB-CPM(每千次廣告曝光成本)','FB-CPA','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-轉換價值','FB-平均客單價',] 
         
         #迭代每個廣告集並獲取廣告 
         for ad in ad_sets:
@@ -766,9 +766,10 @@ def uuspa_meta_api_link():
             except:
                 cvr_list.append('None')    
             #轉為小數點第二位與百分比
-            #CTR
+            #CTR(全部)，
+            #改為FB-平均客單價，公式:購買轉換值÷購買次數
             try:
-                ctr_cal=f'{float(insights[0]["ctr"]):.2f}%' 
+                ctr_cal=f'{float(buy_trans_data[-1])/float(pay_num_list[-1]):.2f}'
                 ctr_list.append(ctr_cal)
             except:
                 ctr_list.append('None')
