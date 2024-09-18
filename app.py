@@ -51,7 +51,14 @@ def uuspa_meta_api_link():
             'fields': ['name','id']
         }
         # 獲取廣告集 
-        ad_sets = my_account.get_ads(params=params) 
+        my_app_id2 = '1497667584443557'
+        my_app_secret2 = 'bcd21030e69b10b8c1576f2739dd3873'
+        my_access_token2 = 'EAAVSHuhcxKUBOzC5AC7jBhBXrAOK2DVMYpnQfZB5OZBTDSK9HWof7jcq8GZB5Nuw5vU67lV4fWXEYPMQS4ijNSYqyfrQdbpqN3BTRlsiBZC2QYvZBqOnbLmlU0tv0Cdp1ZCThEmj7eZCjHc2ajriQgYRwtra2MGGKwDwuRbbsMGzLUEdMXpInVDjZBWHTJf41cx9QW2SiH5T'
+        # 初始化 Facebook 廣告 API 
+        FacebookAdsApi.init(my_app_id2, my_app_secret2, my_access_token2) 
+        # 指定你的廣告帳戶 ID 
+        my_account2 = AdAccount('act_1316371069004495') 
+        ad_sets = my_account2.get_ads(params=params)
         #要顯示的欄位 
         #meta_columns=['廣告ID','廣告名稱','FB-加入購物車率','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-平均客單價','FB-CPM(每千次廣告曝光成本)','FB-加入購物車','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-CPA','FB-轉換價值'] 
         #調整次數
@@ -100,8 +107,9 @@ def uuspa_meta_api_link():
                     buy_trans_path=None
                 save_index=0
                 #購買轉換值
-                detile_ad_buy_trans_data = [trans['value'] for trans in buy_trans_path if trans['action_type'] == 'onsite_web_app_purchase']
                 try:
+                    detile_ad_buy_trans_data = [trans['value'] for trans in buy_trans_path if trans['action_type'] == 'onsite_web_app_purchase']
+                
                     #print(detile_ad_buy_trans_data)
                     detile_ad_buy_trans.append(detile_ad_buy_trans_data[0])
                 except:
