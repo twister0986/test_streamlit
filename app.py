@@ -53,17 +53,12 @@ def uuspa_meta_api_link():
         # 獲取廣告集 
         my_app_id2 = '1497667584443557'
         my_app_secret2 = 'bcd21030e69b10b8c1576f2739dd3873'
-        my_access_token2 = 'EAAVSHuhcxKUBO4svTnYo7SAKZAy38ZAgiaiK9l4QiC8Tk8XG4MOhmekcFVfByY1TJu9ZCL5ejkhoPXGmtigRaWhb1lWjw7bQ9r3MYsPQmCvsn9ZBOuBREXviagrn1AvzO3w0BP3Y4b1qZB5ZASyhDs93ckGXkLbvdDNqnHZCoV92kqPG6jcRCBjNW8CZAF1ZAlMw6sZCDCnTi6'
+        my_access_token2 = 'EAAVSHuhcxKUBOxNuwKnbf6eoyOg60v47byEP56qaYy3NBLR9dDrI7VpOE27LOSx8EHBfpGhKHAhXxuZCXBH71YALK5rn8hqMcFeMIaJ8kfd8GnYxhsDUFYug9emxXNXBDZBf25eTvjUUxq0ZB2WCnYupRvwmbPIdvFYR1ZBzEZBLAW8G62FjST5GW1KKOoyIldxGRQAZB8'
         # 初始化 Facebook 廣告 API 
         FacebookAdsApi.init(my_app_id2, my_app_secret2, my_access_token2) 
         # 指定你的廣告帳戶 ID 
-        my_account2 = AdAccount('act_1316371069004495') 
-        
-        try:
-            ad_sets = my_account2.get_ads(params=params)
-        except:
-            ti.sleep(10)
-            uuspa_meta_api_link()
+        my_account2 = AdAccount('act_1316371069004495')
+        ad_sets = my_account2.get_ads(params=params)
         
         #要顯示的欄位 
         #meta_columns=['廣告ID','廣告名稱','FB-加入購物車率','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-平均客單價','FB-CPM(每千次廣告曝光成本)','FB-加入購物車','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-CPA','FB-轉換價值'] 
@@ -917,7 +912,7 @@ def uuspa_meta_api_link():
     #uuspa_meta_api_link函式主程式
     my_app_id = '1777385229335734'
     my_app_secret = '2b35ce330a4c66dbde025764339aa179'
-    my_access_token = 'EAAZAQhb85PLYBO9XzqzrQ5QBAVsyBjY4DXn8U64W02Wy4aNQmdXbF0iA8NWUusDaw6NgfWL4nLn7ZApx3D3G0WSIOcZBdgJbhHMZCtrLOsODgYjNMkBTebuXZAhts194075qqr9zEA1Gw6Iuz4QGTJUtZAz8pLUJklOnH6VzJe7lzM76LhXhOPigmMXdGkXgxcQPfHP2dZC'
+    my_access_token = 'EAAZAQhb85PLYBOZCbgBYmozJjkAfNOmArj26h51kMWasqTZCaKLEZCv64zflnlgj7r13wPt7xWFJSig2ESNI5tzzBrcsPKw7lsMArS0IiAYgiII1tYMRD4AeZCGbeDnmexqnHaQDqOYyi5KZAPqHgJqewH04g0cMsykSmrzSr4PGM4UoQAxbhByvqV5Rox3rCGZAuZCbALKh'
     # 初始化 Facebook 廣告 API 
     FacebookAdsApi.init(my_app_id, my_app_secret, my_access_token) 
     # 指定你的廣告帳戶 ID 
