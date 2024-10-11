@@ -58,11 +58,13 @@ def uuspa_meta_api_link():
         FacebookAdsApi.init(my_app_id2, my_app_secret2, my_access_token2) 
         # 指定你的廣告帳戶 ID 
         my_account2 = AdAccount('act_1316371069004495') 
+        
         try:
             ad_sets = my_account2.get_ads(params=params)
         except:
             ti.sleep(10)
-            
+            uuspa_meta_api_link()
+        
         #要顯示的欄位 
         #meta_columns=['廣告ID','廣告名稱','FB-加入購物車率','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-平均客單價','FB-CPM(每千次廣告曝光成本)','FB-加入購物車','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-CPA','FB-轉換價值'] 
         #調整次數
