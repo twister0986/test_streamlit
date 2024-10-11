@@ -53,7 +53,7 @@ def uuspa_meta_api_link():
         # 獲取廣告集 
         my_app_id2 = '1497667584443557'
         my_app_secret2 = 'bcd21030e69b10b8c1576f2739dd3873'
-        my_access_token2 = 'EAAVSHuhcxKUBOzC5AC7jBhBXrAOK2DVMYpnQfZB5OZBTDSK9HWof7jcq8GZB5Nuw5vU67lV4fWXEYPMQS4ijNSYqyfrQdbpqN3BTRlsiBZC2QYvZBqOnbLmlU0tv0Cdp1ZCThEmj7eZCjHc2ajriQgYRwtra2MGGKwDwuRbbsMGzLUEdMXpInVDjZBWHTJf41cx9QW2SiH5T'
+        my_access_token2 = 'EAAVSHuhcxKUBO5xi5kEudgVZC2N9ptBI2SPShv3aJBfuRJOl65YVPztv66O6ZALEx6AjOUW50XgABEVKZBh8Fv7tjAaEPZA8tlR6c2pW9mZCwO36eTLZC2IwYWLgEI9F5228ra7b6WFqxrdhodZCQZCJ4c5KxYVc09OD50MJEydND868w7V8NZCDHuK7Mutq4pTCQuH1Kzxbc'
         # 初始化 Facebook 廣告 API 
         FacebookAdsApi.init(my_app_id2, my_app_secret2, my_access_token2) 
         # 指定你的廣告帳戶 ID 
@@ -911,7 +911,7 @@ def uuspa_meta_api_link():
     #uuspa_meta_api_link函式主程式
     my_app_id = '1777385229335734'
     my_app_secret = '2b35ce330a4c66dbde025764339aa179'
-    my_access_token = 'EAAZAQhb85PLYBO0rjjVtKZAMrdNZCQZAvlzJZC9AZBqcSx1Yu1yHMzcoMTRFhHItzrO87DEcSn7ZC71IP8czc0H3nynxo3uetgtivrq2SPaJMxhbNKMl2BdlwVP5rMM3TU0oOi287K9ipZBIZBSFRI999EURa2gcKJcMTNRuZBMRKLZAwvs2FDhbo2l1YXmhvrUOBfjZBDoSkYyZC'
+    my_access_token = 'EAAZAQhb85PLYBOzw14tZB5zEJAa5JprVR81lxHqfCZBkmIrxAUZB33ZBwroNH2Tc4djYPhvqEWQZCX0MRnSM6KepdQcuvEesAhnEZBepF5WMClLEmrNUZAW65degZAxJLHcQvYqfmkNPMxpVt9crBTepQWHzifBK1J5vTYYqfZADtljE7kwW6ZAy6MXEIOuG28gSPF8JpU50YG6'
     # 初始化 Facebook 廣告 API 
     FacebookAdsApi.init(my_app_id, my_app_secret, my_access_token) 
     # 指定你的廣告帳戶 ID 
