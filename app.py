@@ -58,204 +58,206 @@ def uuspa_meta_api_link():
         FacebookAdsApi.init(my_app_id2, my_app_secret2, my_access_token2) 
         # 指定你的廣告帳戶 ID 
         my_account2 = AdAccount('act_1316371069004495') 
-        ad_sets = my_account2.get_ads(params=params)
-        #要顯示的欄位 
-        #meta_columns=['廣告ID','廣告名稱','FB-加入購物車率','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-平均客單價','FB-CPM(每千次廣告曝光成本)','FB-加入購物車','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-CPA','FB-轉換價值'] 
-        #調整次數
-        meta_columns=['廣告ID','廣告名稱','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-加入購物車','FB-加入購物車率','FB-CPM(每千次廣告曝光成本)','FB-CPA','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-轉換價值','FB-平均客單價',] 
-        
-        #迭代每個廣告集並獲取廣告 
-        for ad in ad_sets:
-            #避免過量讀取 
-            #ti.sleep(1)
-            ad_id = ad['id']  
-            ad_name = ad['name'] 
-            insights_params = { 
-                'fields': [ 
-                    AdsInsights.Field.reach, 
-                    AdsInsights.Field.frequency, 
-                    AdsInsights.Field.spend, 
-                    AdsInsights.Field.impressions, 
-                    AdsInsights.Field.cpm, 
-                    AdsInsights.Field.ctr, 
-                    AdsInsights.Field.clicks,
-                    #AdsInsights.Field.conversions,
-                    AdsInsights.Field.actions,
-                    AdsInsights.Field.purchase_roas,
-                    AdsInsights.Field.action_values,
-                    AdsInsights.Field.cost_per_action_type,
-                ], 
-                'time_range': { 
-                    'since': str(start_search_date),  # 替換為你想要的開始日期 
-                    'until': str(end_search_date)   # 替換為你想要的結束日期 
+        try:
+            ad_sets = my_account2.get_ads(params=params)
+        except:
+            #要顯示的欄位 
+            #meta_columns=['廣告ID','廣告名稱','FB-加入購物車率','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-平均客單價','FB-CPM(每千次廣告曝光成本)','FB-加入購物車','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-CPA','FB-轉換價值'] 
+            #調整次數
+            meta_columns=['廣告ID','廣告名稱','花費金額','FB-曝光次數','FB-點擊','FB-CTR(連結點閱率)','FB-加入購物車','FB-加入購物車率','FB-CPM(每千次廣告曝光成本)','FB-CPA','FB-訂單數','FB-CVR轉換率','FB-ROAS','FB-轉換價值','FB-平均客單價',] 
+            
+            #迭代每個廣告集並獲取廣告 
+            for ad in ad_sets:
+                #避免過量讀取 
+                #ti.sleep(1)
+                ad_id = ad['id']  
+                ad_name = ad['name'] 
+                insights_params = { 
+                    'fields': [ 
+                        AdsInsights.Field.reach, 
+                        AdsInsights.Field.frequency, 
+                        AdsInsights.Field.spend, 
+                        AdsInsights.Field.impressions, 
+                        AdsInsights.Field.cpm, 
+                        AdsInsights.Field.ctr, 
+                        AdsInsights.Field.clicks,
+                        #AdsInsights.Field.conversions,
+                        AdsInsights.Field.actions,
+                        AdsInsights.Field.purchase_roas,
+                        AdsInsights.Field.action_values,
+                        AdsInsights.Field.cost_per_action_type,
+                    ], 
+                    'time_range': { 
+                        'since': str(start_search_date),  # 替換為你想要的開始日期 
+                        'until': str(end_search_date)   # 替換為你想要的結束日期 
+                    } 
                 } 
-            } 
-            insights = Ad(ad_id).get_insights(params=insights_params) 
-            #print(insights)
-            for insight in insights:
-                #活動數據路徑
-                actions_path=insight['actions']
-                #CPA路徑
-                try:
-                    cost_actions_path=insight['cost_per_action_type']
-                except:
-                    cost_actions_path=None
-                #購買轉換值路徑
-                try:
-                    buy_trans_path=insight['action_values']
-                except:
-                    buy_trans_path=None
-                save_index=0
-                #購買轉換值
-                try:
-                    detile_ad_buy_trans_data = [trans['value'] for trans in buy_trans_path if trans['action_type'] == 'onsite_web_app_purchase']
-                
-                    #print(detile_ad_buy_trans_data)
-                    detile_ad_buy_trans.append(detile_ad_buy_trans_data[0])
-                except:
-                    detile_ad_buy_trans.append('None')
-                #每次成果成本
-                try:
-                    detile_ad_result_cost_data = [trans['value'] for trans in cost_actions_path if trans['action_type'] == 'web_in_store_purchase']
-                
-                    detile_ad_result_cost.append(detile_ad_result_cost_data[0])
-                except:
-                    detile_ad_result_cost.append('None')
-                
-                #取得 roas
-                try:
-                    detile_ad_roas_data=insight['purchase_roas'][0]['value']
-                    detile_ad_roas_data=f'{float(detile_ad_roas_data):.2f}' 
-                    detile_ad_roas.append(detile_ad_roas_data)
-                except:
-                    detile_ad_roas.append('None')
-                
-                #取得連結點擊次數
-                for var in range(len(actions_path)):
-                    if actions_path[var]['action_type']=='link_click':
-                        detile_ad_link_clicks.append(actions_path[var]['value'])
-                        save_index=var
-                        break
-                if save_index==0:
-                    detile_ad_link_clicks.append('None')
-                save_index=0
-                #取得購買次數
-                for var in range(len(actions_path)):
-                    if actions_path[var]['action_type']=='purchase':
-                        detile_ad_pay_num.append(actions_path[var]['value'])
-                        save_index=var
-                        break
-                if save_index==0:
-                    detile_ad_pay_num.append('None')
-                save_index=0
-                #計算 CVR 公式:購買次數÷連結點擊次數
-                try:
-                    detile_ad_cvr.append(f'{int(detile_ad_pay_num[-1])/int(detile_ad_link_clicks[-1])*100:.2f}%')
-                except:
-                    detile_ad_cvr.append('None')    
-                #轉為小數點第二位與百分比
-                #CTR(全部)，
-                #改為FB-平均客單價，公式:購買轉換值÷購買次數
-                try:
-                    detile_ad_ctr_cal=f'{float(detile_ad_buy_trans[-1])/float(detile_ad_pay_num[-1]):.2f}'
-                    detile_ad_ctr.append(detile_ad_ctr_cal)
-                except:
-                    detile_ad_ctr.append('None')
-                #CPM    
-                try:
-                    cpm_cal=f'{float(insight["cpm"]):.2f}' 
-                    detile_ad_cpm.append(cpm_cal)
-                except:
-                    detile_ad_cpm.append('None')
-                #抽取加入購物車選項及存入容器
-                
-                for var in range(len(actions_path)):
-                    if actions_path[var]['action_type']=='add_to_cart':
-                        detile_ad_cart.append(actions_path[var]['value'])
-                        save_index=var
-                        
-                        break
-                if save_index==0:
-                    detile_ad_cart.append('None')
-                save_index=0
-    
-                #存入容器
-                #各項廣告的細節依序存入容器
-                detile_ad_num.append(ad_id)
-                detile_ad_name.append(ad_name)
-                #加入觸及人數
-                #改為加入購物車率ACR
-                for var in range(len(actions_path)):
-                    if actions_path[var]['action_type']=='landing_page_view':
-                        detile_ad_link_page_view.append(actions_path[var]['value'])
-                        save_index=var
-                        break
-                if save_index==0:
-                    detile_ad_link_page_view.append('None')
-                save_index=0
-                
-                try:
-                    acr_cal=f'{float(detile_ad_cart[-1])/float(detile_ad_link_page_view[-1])*100:.2f}%'
-                    detile_ad_acr.append(acr_cal)
-                except:
-                    detile_ad_acr.append('None')
+                insights = Ad(ad_id).get_insights(params=insights_params) 
+                #print(insights)
+                for insight in insights:
+                    #活動數據路徑
+                    actions_path=insight['actions']
+                    #CPA路徑
+                    try:
+                        cost_actions_path=insight['cost_per_action_type']
+                    except:
+                        cost_actions_path=None
+                    #購買轉換值路徑
+                    try:
+                        buy_trans_path=insight['action_values']
+                    except:
+                        buy_trans_path=None
+                    save_index=0
+                    #購買轉換值
+                    try:
+                        detile_ad_buy_trans_data = [trans['value'] for trans in buy_trans_path if trans['action_type'] == 'onsite_web_app_purchase']
                     
-                #
-                try:
-                    detile_ad_spend.append(insight['spend'])
-                except:
-                    detile_ad_spend.append('None')
-                # 
-                try:    
-                    detile_ad_impressions.append(insight['impressions'])
-                except:
-                    detile_ad_impressions.append('None')
-                #CTR(連結點閱率)
-                try:
-                    detile_ad_ctr_link_cal=f'{(float(detile_ad_link_clicks[-1])/float(detile_ad_impressions[-1])*100):.2f}%' 
-                    detile_ad_ctr_link.append(detile_ad_ctr_link_cal)
-                except:
-                    detile_ad_ctr_link.append('None')
+                        #print(detile_ad_buy_trans_data)
+                        detile_ad_buy_trans.append(detile_ad_buy_trans_data[0])
+                    except:
+                        detile_ad_buy_trans.append('None')
+                    #每次成果成本
+                    try:
+                        detile_ad_result_cost_data = [trans['value'] for trans in cost_actions_path if trans['action_type'] == 'web_in_store_purchase']
                     
-        # ad_data_detile = {
-        #     meta_columns[0]:detile_ad_num,
-        #     meta_columns[1]:detile_ad_name,
-        #     meta_columns[2]:detile_ad_acr,
-        #     meta_columns[3]:detile_ad_spend,
-        #     meta_columns[4]:detile_ad_impressions,
-        #     meta_columns[5]:detile_ad_link_clicks,
-        #     meta_columns[6]:detile_ad_ctr_link,
-        #     meta_columns[7]:detile_ad_ctr,
-        #     meta_columns[8]:detile_ad_cpm,
-        #     meta_columns[9]:detile_ad_cart,
-        #     meta_columns[10]:detile_ad_pay_num,
-        #     meta_columns[11]:detile_ad_cvr,
-        #     meta_columns[12]:detile_ad_roas,
-        #     meta_columns[13]:detile_ad_result_cost,
-        #     meta_columns[14]:detile_ad_buy_trans,
-            
-        # }
+                        detile_ad_result_cost.append(detile_ad_result_cost_data[0])
+                    except:
+                        detile_ad_result_cost.append('None')
+                    
+                    #取得 roas
+                    try:
+                        detile_ad_roas_data=insight['purchase_roas'][0]['value']
+                        detile_ad_roas_data=f'{float(detile_ad_roas_data):.2f}' 
+                        detile_ad_roas.append(detile_ad_roas_data)
+                    except:
+                        detile_ad_roas.append('None')
+                    
+                    #取得連結點擊次數
+                    for var in range(len(actions_path)):
+                        if actions_path[var]['action_type']=='link_click':
+                            detile_ad_link_clicks.append(actions_path[var]['value'])
+                            save_index=var
+                            break
+                    if save_index==0:
+                        detile_ad_link_clicks.append('None')
+                    save_index=0
+                    #取得購買次數
+                    for var in range(len(actions_path)):
+                        if actions_path[var]['action_type']=='purchase':
+                            detile_ad_pay_num.append(actions_path[var]['value'])
+                            save_index=var
+                            break
+                    if save_index==0:
+                        detile_ad_pay_num.append('None')
+                    save_index=0
+                    #計算 CVR 公式:購買次數÷連結點擊次數
+                    try:
+                        detile_ad_cvr.append(f'{int(detile_ad_pay_num[-1])/int(detile_ad_link_clicks[-1])*100:.2f}%')
+                    except:
+                        detile_ad_cvr.append('None')    
+                    #轉為小數點第二位與百分比
+                    #CTR(全部)，
+                    #改為FB-平均客單價，公式:購買轉換值÷購買次數
+                    try:
+                        detile_ad_ctr_cal=f'{float(detile_ad_buy_trans[-1])/float(detile_ad_pay_num[-1]):.2f}'
+                        detile_ad_ctr.append(detile_ad_ctr_cal)
+                    except:
+                        detile_ad_ctr.append('None')
+                    #CPM    
+                    try:
+                        cpm_cal=f'{float(insight["cpm"]):.2f}' 
+                        detile_ad_cpm.append(cpm_cal)
+                    except:
+                        detile_ad_cpm.append('None')
+                    #抽取加入購物車選項及存入容器
+                    
+                    for var in range(len(actions_path)):
+                        if actions_path[var]['action_type']=='add_to_cart':
+                            detile_ad_cart.append(actions_path[var]['value'])
+                            save_index=var
+                            
+                            break
+                    if save_index==0:
+                        detile_ad_cart.append('None')
+                    save_index=0
         
-        ad_data_detile = {
-            meta_columns[0]:detile_ad_num,
-            meta_columns[1]:detile_ad_name,
+                    #存入容器
+                    #各項廣告的細節依序存入容器
+                    detile_ad_num.append(ad_id)
+                    detile_ad_name.append(ad_name)
+                    #加入觸及人數
+                    #改為加入購物車率ACR
+                    for var in range(len(actions_path)):
+                        if actions_path[var]['action_type']=='landing_page_view':
+                            detile_ad_link_page_view.append(actions_path[var]['value'])
+                            save_index=var
+                            break
+                    if save_index==0:
+                        detile_ad_link_page_view.append('None')
+                    save_index=0
+                    
+                    try:
+                        acr_cal=f'{float(detile_ad_cart[-1])/float(detile_ad_link_page_view[-1])*100:.2f}%'
+                        detile_ad_acr.append(acr_cal)
+                    except:
+                        detile_ad_acr.append('None')
+                        
+                    #
+                    try:
+                        detile_ad_spend.append(insight['spend'])
+                    except:
+                        detile_ad_spend.append('None')
+                    # 
+                    try:    
+                        detile_ad_impressions.append(insight['impressions'])
+                    except:
+                        detile_ad_impressions.append('None')
+                    #CTR(連結點閱率)
+                    try:
+                        detile_ad_ctr_link_cal=f'{(float(detile_ad_link_clicks[-1])/float(detile_ad_impressions[-1])*100):.2f}%' 
+                        detile_ad_ctr_link.append(detile_ad_ctr_link_cal)
+                    except:
+                        detile_ad_ctr_link.append('None')
+                        
+            # ad_data_detile = {
+            #     meta_columns[0]:detile_ad_num,
+            #     meta_columns[1]:detile_ad_name,
+            #     meta_columns[2]:detile_ad_acr,
+            #     meta_columns[3]:detile_ad_spend,
+            #     meta_columns[4]:detile_ad_impressions,
+            #     meta_columns[5]:detile_ad_link_clicks,
+            #     meta_columns[6]:detile_ad_ctr_link,
+            #     meta_columns[7]:detile_ad_ctr,
+            #     meta_columns[8]:detile_ad_cpm,
+            #     meta_columns[9]:detile_ad_cart,
+            #     meta_columns[10]:detile_ad_pay_num,
+            #     meta_columns[11]:detile_ad_cvr,
+            #     meta_columns[12]:detile_ad_roas,
+            #     meta_columns[13]:detile_ad_result_cost,
+            #     meta_columns[14]:detile_ad_buy_trans,
+                
+            # }
             
-            meta_columns[2]:detile_ad_spend,
-            meta_columns[3]:detile_ad_impressions,
-            meta_columns[4]:detile_ad_link_clicks,
-            meta_columns[5]:detile_ad_ctr_link,
-            meta_columns[6]:detile_ad_cart,
-            meta_columns[7]:detile_ad_acr,
-            meta_columns[8]:detile_ad_cpm,
-            meta_columns[9]:detile_ad_result_cost,
-            meta_columns[10]:detile_ad_pay_num,
-            meta_columns[11]:detile_ad_cvr,
-            meta_columns[12]:detile_ad_roas,
-            meta_columns[13]:detile_ad_buy_trans,
-            meta_columns[14]:detile_ad_ctr,
-        }
-        ad_data_all_detile=pd.DataFrame(ad_data_detile)
-        ad_data_all_detile_view=st.dataframe(ad_data_all_detile)
+            ad_data_detile = {
+                meta_columns[0]:detile_ad_num,
+                meta_columns[1]:detile_ad_name,
+                
+                meta_columns[2]:detile_ad_spend,
+                meta_columns[3]:detile_ad_impressions,
+                meta_columns[4]:detile_ad_link_clicks,
+                meta_columns[5]:detile_ad_ctr_link,
+                meta_columns[6]:detile_ad_cart,
+                meta_columns[7]:detile_ad_acr,
+                meta_columns[8]:detile_ad_cpm,
+                meta_columns[9]:detile_ad_result_cost,
+                meta_columns[10]:detile_ad_pay_num,
+                meta_columns[11]:detile_ad_cvr,
+                meta_columns[12]:detile_ad_roas,
+                meta_columns[13]:detile_ad_buy_trans,
+                meta_columns[14]:detile_ad_ctr,
+            }
+            ad_data_all_detile=pd.DataFrame(ad_data_detile)
+            ad_data_all_detile_view=st.dataframe(ad_data_all_detile)
     
     #每日    
     def single_view_ad(start_date,end_date):
